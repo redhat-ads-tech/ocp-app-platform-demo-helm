@@ -1,0 +1,14 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ include "amq-streams-console-operator.name" . }}-operator
+  namespace: {{ include "amq-streams-console-operator.namespace" . }}
+  annotations:
+    {{- include "amq-streams-console-operator.argocd-syncwave" . | nindent 4 }}
+spec:
+  channel: {{ .Values.subscription.channel }}
+  installPlanApproval: {{ .Values.subscription.installPlanApproval }}
+  name: {{ .Values.subscription.name }}
+  source: {{ .Values.subscription.source }}
+  sourceNamespace: {{ .Values.subscription.sourceNamespace }}

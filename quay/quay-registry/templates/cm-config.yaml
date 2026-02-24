@@ -1,0 +1,196 @@
+kind: ConfigMap
+metadata:
+  name: {{ include "quay-registry.name" . }}-config
+  annotations:
+    {{- include "quay-registry.config.argocd-syncwave" . | nindent 4 }}
+apiVersion: v1
+data:
+  playbook.yaml: |
+    ---
+    - name: Config Quay registry
+      hosts: localhost
+      vars:
+        vault_namespace: {{ $.Values.vault.namespace }}
+        vault_name: {{ $.Values.vault.name }}
+      tasks:
+        - name: Check QuayRegistry status 
+          kubernetes.core.k8s_info:
+            api_version: quay.redhat.com/v1
+            kind: QuayRegistry
+            name: {{ include "quay-registry.name" . }}
+            namespace: {{ .Release.Namespace }}
+          register: r_quay_registry
+          until:
+            - r_quay_registry.resources[0].status.currentVersion is defined
+            - r_quay_registry.resources[0].status.currentVersion | length > 0
+          retries: 120
+          delay: 10
+
+{{- if .Values.quay.configureAdmin }}
+        - name: Wait for Quay API to be available
+          ansible.builtin.uri:
+            url: '{{ "{{" }} r_quay_registry.resources[0].status.registryEndpoint {{ "}}" }}/api/v1/discovery'
+            method: GET
+            validate_certs: false
+          register: r_quayapi
+          until: r_quayapi.status == 200 or r_quayapi.status == 403
+          retries: 120
+          delay: 10
+        - name: Create QuayAdmin user
+          ansible.builtin.uri:
+            url: '{{ "{{" }} r_quay_registry.resources[0].status.registryEndpoint {{ "}}" }}/api/v1/user/initialize'
+            method: POST
+            body:
+              username: "{{ .Values.quay.adminUser }}"
+              password: "{{ .Values.quay.adminUserPassword }}"
+              email: "quayadmin@demo.redhat.com"
+              access_token: "true"
+            body_format: json
+            validate_certs: false
+            status_code: 200
+          register: r_quayadmin
+        - name: Create quay admin token secret
+          kubernetes.core.k8s:
+            state: present
+            definition: 
+              kind: Secret
+              apiVersion: v1
+              metadata:
+                name: {{ include "quay-registry.name" . }}-admin-token
+                namespace: {{ .Release.Namespace }}
+              stringData:
+                token: '{{ "{{" }} r_quayadmin.json.access_token {{ "}}" }}'
+              type: Opaque
+{{- end }}
+
+        - name: Wait until Quay database has been redeployed
+          kubernetes.core.k8s_info:
+            api_version: apps/v1
+            kind: Deployment
+            name: {{ include "quay-registry.name" . }}-quay-database
+            namespace: {{ .Release.Namespace }}
+          register: r_quay_database_deployment
+          retries: 10
+          delay: 5
+          ignore_errors: true
+          until:
+            - r_quay_database_deployment.resources is defined
+            - r_quay_database_deployment.resources | length == 1
+            - r_quay_database_deployment.resources[0].status is defined
+            - r_quay_database_deployment.resources[0].status.observedGeneration is defined
+            - r_quay_database_deployment.resources[0].status.observedGeneration | int == 2
+
+        - name: Get Quay database pod and ensure it's running
+          kubernetes.core.k8s_info:
+            api_version: v1
+            kind: Pod
+            namespace: {{ .Release.Namespace }}
+            label_selectors:
+              - quay-component = postgres
+          register: r_quay_database_pod
+          retries: 40
+          delay: 5
+          until:
+            - r_quay_database_pod.resources is defined
+            - r_quay_database_pod.resources | length == 1
+            - r_quay_database_pod.resources[0].status is defined
+            - r_quay_database_pod.resources[0].status.phase is defined
+            - r_quay_database_pod.resources[0].status.phase == "Running"
+
+        # Ignore errors in case it found the wrong pod name. Next task will remain as failsafe
+        - name: Extend Quay token expiration
+          kubernetes.core.k8s_exec:
+            namespace: {{ .Release.Namespace }}
+            pod: '{{ "{{" }} r_quay_database_pod.resources[0].metadata.name {{ "}}" }}'
+            command: >-
+              psql -d quay-quay-database -c "update public.oauthaccesstoken set expires_at = '2300-12-31 00:00:00' where id = 1;"
+          register: r_extend_token
+          retries: 2
+          delay: 5
+          ignore_errors: true
+          until:
+            - r_extend_token.rc is defined
+            - r_extend_token.rc == 0
+
+        # Failsafe in case the previous step failed
+        - name: Extend Quay token expiration (using shell)
+          when: r_extend_token.failed
+          ansible.builtin.shell: |
+            oc exec $(oc get pod -n {{ .Release.Namespace }} | grep {{ include "quay-registry.name" . }}-quay-database | awk '{print $1}') \
+            -n {{ .Release.Namespace }} -- psql -d quay-quay-database -c \
+            "update public.oauthaccesstoken set expires_at = '2300-12-31 00:00:00' where id = 1;"
+          register: _r_ext_quay_token_exp
+          until: _r_ext_quay_token_exp.rc == 0
+          retries: 5
+          delay: 30
+
+        - name: Retrieve Vault Pod
+          kubernetes.core.k8s_info:
+            kind: Pod
+            name: {{ .Values.vault.name }}-0
+            namespace: {{ .Values.vault.namespace }}
+          register: r_vault
+          retries: 120
+          delay: 5
+          until:
+            - r_vault.resources is defined
+            - r_vault.resources | length > 0
+            - r_vault.resources[0].status is defined
+            - r_vault.resources[0].status.phase is defined
+            - r_vault.resources[0].status.phase == 'Running'
+
+        - name: Create vault secrets for Quay access
+          vars:
+            quay_auth: "{{ .Values.quay.adminUser }}:{{ .Values.quay.adminUserPassword }}"
+          kubernetes.core.k8s_exec:
+            namespace: {{ .Values.vault.namespace }}
+            pod: {{ .Values.vault.namespace }}-0
+            command: '{{ "{{" }} item {{ "}}" }}'
+          loop:
+            - 'vault kv put kv/secrets/quay/auth value={{ "{{" }} quay_auth | b64encode {{ "}}" }}'
+            - "vault kv put kv/secrets/quay/username value={{ .Values.quay.adminUser }}"
+            - "vault kv put kv/secrets/quay/password value={{ .Values.quay.adminUserPassword }}"
+
+{{- range $item := .Values.quay.organizations }}
+        - name: Create organization {{ $item }}
+          ansible.builtin.uri:
+            url: '{{ "{{" }} r_quay_registry.resources[0].status.registryEndpoint {{ "}}" }}/api/v1/organization/'
+            method: POST
+            headers:
+              Authorization: 'Bearer {{ "{{" }} r_quayadmin.json.access_token {{ "}}" }}'
+            body:
+              name: {{ $item }}
+            body_format: json
+            validate_certs: false
+            status_code: 201
+{{- end }}
+
+{{- range $user := .Values.quay.users }}
+        - name: Create user {{ $user.username }}
+          ansible.builtin.uri:
+            url: '{{ "{{" }} r_quay_registry.resources[0].status.registryEndpoint {{ "}}" }}/api/v1/superuser/users/'
+            method: POST
+            headers:
+              Authorization: 'Bearer {{ "{{" }} r_quayadmin.json.access_token {{ "}}" }}'
+            body:
+              username: {{ $user.username }}
+              email: {{ $user.email }}
+            body_format: json
+            validate_certs: false
+            status_code:
+              - 200
+          register: r_create_user_{{ $user.username }}
+
+        - name: Set password for {{ $user.username }}
+          ansible.builtin.uri:
+            url: '{{ "{{" }} r_quay_registry.resources[0].status.registryEndpoint {{ "}}" }}/api/v1/superuser/users/{{ $user.username }}'
+            method: PUT
+            headers:
+              Authorization: 'Bearer {{ "{{" }} r_quayadmin.json.access_token {{ "}}" }}'
+            body:
+              password: {{ $user.password }}
+            body_format: json
+            validate_certs: false
+            status_code:
+              - 200
+{{- end }}

@@ -1,0 +1,13 @@
+apiVersion: v2
+name: quay
+description: A Helm chart for Kubernetes
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: quay-operator
+    version: 0.1.0
+    repository: file://quay-operator
+  - name: quay-registry
+    version: 0.1.0
+    repository: file://quay-registry

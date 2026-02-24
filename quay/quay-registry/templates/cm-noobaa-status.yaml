@@ -1,0 +1,25 @@
+kind: ConfigMap
+metadata:
+  name: {{ include "quay-registry.name" . }}-noobaa
+  annotations:
+    {{- include "quay-registry.noobaa.argocd-syncwave" . | nindent 4 }}
+apiVersion: v1
+data:
+  playbook.yaml: |
+    ---
+    - name: Check NooBaa status
+      hosts: localhost
+      vars:
+        noobaa_name: {{ $.Values.noobaa.name }}
+        noobaa_namespace: {{ $.Values.noobaa.namespace }}
+      tasks:
+        - name: Wait until NooBaa is ready
+          kubernetes.core.k8s_info:
+            api_version: noobaa.io/v1alpha1
+            kind: NooBaa
+            name: '{{ "{{" }} noobaa_name {{ "}}" }}'
+            namespace: '{{ "{{" }} noobaa_namespace {{ "}}" }}'
+          register: r_noobaa
+          until: r_noobaa.resources.0.status.phase == "Ready"
+          retries: 120
+          delay: 10 

@@ -1,0 +1,25 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: {{ include "redhat-developer-hub-prereqs.name" . }}-postgresql
+  labels:
+    {{- include "redhat-developer-hub-prereqs.labels" . | nindent 4 }}
+  annotations:
+    {{- include "redhat-developer-hub-prereqs.argocd-syncwave" . | nindent 4 }}
+spec:
+  refreshInterval: 5m
+  secretStoreRef:
+    name: vault-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: {{ include "redhat-developer-hub-prereqs.name" . }}-postgresql
+    creationPolicy: Owner
+  data:
+    - secretKey: postgres-password
+      remoteRef:
+        key: secrets/rhdh/postgresql-password
+        property: value
+    - secretKey: adminPasswordKey
+      remoteRef:
+        key: secrets/rhdh/postgresql-password
+        property: value

@@ -1,0 +1,28 @@
+apiVersion: console.streamshub.github.com/v1alpha1
+kind: Console
+metadata:
+  name: {{ include "amq-streams-console.name" . }}
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  labels:
+    {{- include "amq-streams-console.labels" . | nindent 4 }}
+  annotations:
+    {{- include "amq-streams-console.argocd-syncwave" . | nindent 4 }}
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  hostname: {{ include "amq-streams-console.name" . }}.{{ .Values.subdomain }}
+  metricsSources:
+    - name: ocp-prometheus
+      type: openshift-monitoring
+  kafkaClusters:
+    - name: {{ .Values.kafka.name }}
+      namespace: {{ .Values.namespace }}
+      listener: plain
+      metricsSource: ocp-prometheus
+      properties:
+        values: []
+        valuesFrom: []
+      credentials:
+        kafkaUser:
+          name: {{ include "amq-streams-console.name" . }}-kafka-user

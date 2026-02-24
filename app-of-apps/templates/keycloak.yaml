@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" .Values.keycloak.name "namespace" .Values.argocd.namespace "syncWave" "1") }}
+spec:
+  destination:
+    namespace: {{ .Values.keycloak.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  ignoreDifferences:
+    - group: k8s.keycloak.org
+      kind: KeycloakRealmImport
+      jqPathExpressions:
+        - .. | (.id, .containerId, .secret)? | strings
+  source:
+    path: keycloak
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        keycloak:
+          nameOverride: {{ .Values.keycloak.crName }}
+          route:
+            host: {{ .Values.keycloak.route.host }}
+          ingress:
+            enabled: {{ .Values.keycloak.externalAccess }}
+        keycloak-realm-import:
+          keycloak:
+            name: {{ .Values.keycloak.crName }}
+          realm:
+            name: {{ .Values.keycloak.realm.name }}
+          client:
+            backstage:
+              name: {{ .Values.keycloak.client.backstage.name }}
+              redirectUri: {{ .Values.keycloak.client.backstage.redirectUri }}
+              webOrigin: {{ .Values.keycloak.client.backstage.webOrigin }}
+              secret: {{ .Values.keycloak.client.backstage.secret | quote }}
+            backstagePlugin:
+              name: {{ .Values.keycloak.client.backstagePlugin.name }}
+              secret: {{ .Values.keycloak.client.backstagePlugin.secret | quote }}
+            openshift:
+              name: {{ .Values.keycloak.client.openshift.name }}
+              redirectUri: {{ .Values.keycloak.client.openshift.redirectUri }}
+              secret: {{ .Values.keycloak.client.openshift.secret | quote }}
+          users:
+            password: {{ .Values.keycloak.users.password | quote }}
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}

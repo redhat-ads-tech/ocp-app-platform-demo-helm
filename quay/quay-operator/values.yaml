@@ -1,0 +1,16 @@
+nameOverride: "quay"
+fullnameOverride: ""
+
+namespace: openshift-operators
+
+subscription:
+  channel: stable-3.13
+  installPlanApproval: Automatic
+  name: quay-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+argocd:
+  enabled: true
+  operator:
+    syncwave: "-2"

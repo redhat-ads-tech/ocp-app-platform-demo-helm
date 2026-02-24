@@ -1,0 +1,8 @@
+kafka-broker:
+  namespace: kafka
+  authentication:
+    clientId: parasol
+
+amq-streams-console:
+  namespace: kafka
+  subdomain: ""

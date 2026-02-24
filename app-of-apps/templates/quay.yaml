@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" .Values.quay.name "namespace" .Values.argocd.namespace "syncWave" "1") }}
+spec:
+  destination:
+    namespace: {{ .Values.quay.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: quay
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        quay-registry:
+          quay:
+            host: {{ .Values.quay.host }}
+            adminUser: {{ .Values.quay.adminUser }}
+            adminUserPassword: {{ .Values.quay.adminUserPassword | quote }}
+            organizations: {{ .Values.quay.organizations | toJson }}
+            users: {{ .Values.quay.users | toJson }}
+          vault:
+            name: {{ .Values.vault.name }}
+            namespace: {{ .Values.vault.namespace }}
+          noobaa:
+            name: {{ .Values.noobaa.name }}
+            namespace: {{ .Values.noobaa.namespace }}
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}

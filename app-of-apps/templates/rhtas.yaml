@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" .Values.rhtas.name "namespace" .Values.argocd.namespace "syncWave" "2") }}
+spec:
+  destination:
+    namespace: {{ .Values.rhtas.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: rhtas
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        trusted-artifact-signer:
+          oidc: {{ .Values.rhtas.oidcIssuer }}
+          email: {{ .Values.rhtas.rootCert.email }}
+          org: {{ .Values.rhtas.rootCert.org }}
+          instance: {{ .Values.rhtas.instance }}
+          namespace: {{ .Values.rhtas.namespace }}
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}

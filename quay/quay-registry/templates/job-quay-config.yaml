@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "quay-registry.name" . }}-config
+  annotations:
+    {{- include "quay-registry.config.argocd-syncwave" . | nindent 4 }}
+spec:
+  backoffLimit: 100
+  template:
+    spec:
+      containers:
+      - name: quay-config
+        command:
+          - /bin/bash
+          - '-c'
+          - |
+            set -x
+            ansible-playbook -i localhost /scripts/playbook.yaml
+        image: quay.io/agnosticd/ee-multicloud:latest
+        volumeMounts:
+          - mountPath: /scripts
+            name: quay-config-vol
+      restartPolicy: Never
+      serviceAccount: {{ include "quay-registry.name" . }}-config
+      volumes:
+      - name: quay-config-vol
+        configMap:
+          name: {{ include "quay-registry.name" . }}-config

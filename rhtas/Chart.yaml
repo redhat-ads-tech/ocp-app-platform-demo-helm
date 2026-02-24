@@ -1,0 +1,13 @@
+apiVersion: v2
+name: rhtas
+description: A Helm chart for Kubernetes
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: rhtas-operator
+    version: 0.1.0
+    repository: file://rhtas-operator
+  - name: trusted-artifact-signer
+    version: 0.1.0
+    repository: file://trusted-artifact-signer

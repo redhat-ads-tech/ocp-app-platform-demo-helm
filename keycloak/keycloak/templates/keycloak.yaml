@@ -1,0 +1,29 @@
+kind: Keycloak
+apiVersion: k8s.keycloak.org/v2alpha1
+metadata:
+  name: {{ include "keycloak.name" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+    app: {{ include "keycloak.name" . }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    {{- include "keycloak.argocd-syncwave" . | nindent 4 }}
+spec:
+  db:
+    vendor: {{ .Values.database.vendor }}
+    host: {{ .Values.database.host }}
+    usernameSecret:
+      name: {{ .Values.database.secret }}
+      key: database-user
+    passwordSecret:
+      name: {{ .Values.database.secret }}
+      key: database-password
+  instances: 1
+  ingress: 
+    enabled: {{ .Values.ingress.enabled }}
+  http:
+    httpEnabled: true
+  hostname:
+    hostname: {{ include "keycloak.hostname" . }}
+    strict: false
+    adminUrl: https://{{ include "keycloak.hostname" . }}

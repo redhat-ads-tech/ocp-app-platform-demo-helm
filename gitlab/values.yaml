@@ -1,0 +1,170 @@
+gitlab:
+  image: quay.io/redhat-gpte/gitlab:17.4.1
+  email:
+    address: "gitlab@rhdemo.com"
+    displayName: "GitLab Admin"
+    replyTo: "noreply@rhdemo.com"
+  smtp:
+    enabled: "false"
+    domain: "rhdemo.com"
+    host:
+    port: "587"
+    user: "gitlab"
+    password: "gitlab"
+  ssh:
+    host:
+    port: "22"
+  rootPassword:
+  host:
+  https: "true"
+  rootEmail: "root@rhdemo.com"
+  keyBase:
+    db: "0123456789"
+    otp: "0123456789"
+    secret: "0123456789"
+  users:
+    users:
+      - id: dev1
+      - id: dev2
+      - id: pe1
+      - id: pe2
+    password: 
+  groups:
+    - name: rhdh
+      repo:
+        - name: template-quarkus-simple
+          url: https://github.com/redhat-pe-workshop/rhdh-template-quarkus-simple.git
+          defaultBranch: dev
+        - name: parasol-store-dev-template
+          url: https://github.com/redhat-pe-workshop/parasol-store-dev-templates.git
+          defaultBranch: dev
+        - name: parasol-store-dev-template-secure
+          url: https://github.com/redhat-pe-workshop/parasol-store-dev-template-secured.git
+          defaultBranch: dev
+        - name: developer-hub-config
+          url: https://github.com/redhat-pe-workshop/developer-hub-config.git
+        - name: import-existing-app-template
+          url: https://github.com/redhat-pe-workshop/import-existing-app-template.git
+          defaultBranch: dev
+        - name: import-existing-api-template
+          url: https://github.com/redhat-pe-workshop/import-api-template.git
+          defaultBranch: dev
+        - name: devfiles
+          url: https://github.com/redhat-pe-workshop/devfiles.git
+        - name: rhdh-entities
+          url: https://github.com/redhat-pe-workshop/pe-workshop-entities.git
+        - name: template-developer-self-service
+          url: https://github.com/redhat-pe-workshop/rhdh-template-developer-self-service.git
+        - name: orchestrator-workflows
+          url: https://github.com/redhat-pe-workshop/orchestrator-workflows.git
+      users:
+        - id: pe1
+        - id: pe2
+      project:
+        - name: rhdh-issues
+          labels:
+            - name: approved
+              color: green
+            - name: denied
+              color: red        
+    - name: devteam1
+      repo: []
+      users:
+        - id: dev1
+        - id: dev2
+    - name: parasol
+      repo:
+        - name: parasol-store
+          url: https://github.com/redhat-pe-workshop/parasol-store.git
+          properties:
+            onlyMergeWhenPipelineSucceeds: true
+        - name: parasol-web
+          url: https://github.com/redhat-pe-workshop/parasol-web.git
+          properties:
+            onlyMergeWhenPipelineSucceeds: true
+        - name: parasol-store-api
+          url: https://github.com/redhat-pe-workshop/parasol-store-api.git
+        - name: parasol-db-manifests
+          url: https://github.com/redhat-pe-workshop/parasol-db-manifests.git
+        - name: parasol-store-manifests
+          url: https://github.com/redhat-pe-workshop/parasol-store-manifests.git
+          properties:
+            onlyMergeWhenPipelineSucceeds: true          
+        - name: parasol-web-manifests
+          url: https://github.com/redhat-pe-workshop/parasol-web-manifests.git
+        - name: parasol-store-build-manifests
+          url: https://github.com/redhat-pe-workshop/parasol-store-build-manifests.git
+        - name: all-location-parasol
+          url: https://github.com/redhat-pe-workshop/all-location-parasol.git
+      users:
+        - id: dev1
+        - id: dev2
+        - id: pe1
+        - id: pe2
+    - name: global
+      repo:
+        - name: global-techdocs
+          url: https://github.com/redhat-pe-workshop/global-techdocs.git
+      users:
+        - id: dev1
+        - id: dev2
+        - id: pe1
+        - id: pe2
+  templates:
+    - group: rhdh
+      project: template-quarkus-simple
+      branch: main
+      templates:
+        - template.yaml
+    - group: rhdh
+      project: import-existing-app-template
+      branch: main
+      templates:
+        - template.yaml
+    - group: rhdh
+      project: import-existing-api-template
+      branch: main
+      templates:
+        - template.yaml
+    - group: global
+      project: global-techdocs
+      branch: main
+      templates:
+        - catalog-info.yaml
+        - mkdocs.yaml
+    - group: rhdh
+      project: template-developer-self-service
+      branch: main
+      templates:
+        - postgres15/template.yaml
+        - namespace/template-small.yaml
+        - namespace/template-medium.yaml
+        - namespace/template-large.yaml
+    - group: rhdh
+      project: orchestrator-workflows
+      branch: main
+      templates:
+        - manifests/greeting/application.yaml
+        - manifests/create-ocp-namespace-swt/application.yaml
+postgresql:
+  dbUser: gitlab
+  dbPassword: passw0rd
+  dbName: gitlab_production
+
+cluster:
+  subdomain: 
+
+gitops:
+  namespace:
+  project: default
+
+quay:
+  host: 
+
+vault:
+  name: vault
+  namespace: vault
+
+orchestrator:
+  # As of RHDH 1.8.0, the orchestrator namespace is in the RHDH (backstage) namespace
+  namespace: backstage

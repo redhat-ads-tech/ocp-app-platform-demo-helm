@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" .Values.vault.name "namespace" .Values.argocd.namespace "syncWave" "0") }}
+spec:
+  destination:
+    namespace: {{ .Values.vault.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions:
+        - '.webhooks[]?.clientConfig.caBundle'
+  source:
+    path: vault
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        nameOverride: {{ .Values.vault.name }}
+        kubernetes:
+          apiserver: {{ .Values.cluster.apiServer }}
+        vault:
+          auth:
+            namespace: {{ .Values.vault.authNamespace }}
+        secrets:
+          gitlab:
+            rootPassword: {{ .Values.vault.secrets.gitlab.rootPassword | quote }}
+          keycloak:
+            clientId: {{ .Values.vault.secrets.keycloak.clientId }}
+            clientSecret: {{ .Values.vault.secrets.keycloak.clientSecret | quote }}
+            pluginClientSecret: {{ .Values.vault.secrets.keycloak.pluginClientSecret | quote }}
+            openshiftClientSecret: {{ .Values.vault.secrets.keycloak.openshiftClientSecret | quote }}
+          rhdh:
+            argocdPassword: {{ .Values.vault.secrets.rhdh.argocdPassword | quote }}
+            postgresqlPassword: {{ .Values.vault.secrets.rhdh.postgresqlPassword | quote }}
+          orchestrator:
+            token: {{ .Values.vault.secrets.orchestrator.token | quote }}
+          common:
+            password: {{ .Values.vault.secrets.common.password | quote }}
+          litellm:
+            apiUrl: {{ .Values.vault.secrets.litellm.apiUrl | quote }}
+            apiKey: {{ .Values.vault.secrets.litellm.apiKey | quote }}
+          kafka:
+            userPassword: {{ .Values.vault.secrets.kafka.userPassword | quote }}
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true

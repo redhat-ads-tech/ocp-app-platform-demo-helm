@@ -1,0 +1,19 @@
+nameOverride: "keycloak"
+fullnameOverride: ""
+
+namespace: ""
+
+keycloak:
+  subscription:
+    channel: stable-v24
+    installPlanApproval: Automatic
+    name: rhbk-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+
+argocd:
+  enabled: true
+  operatorgroup:
+    syncwave: "-3"
+  operator:
+    syncwave: "-2"

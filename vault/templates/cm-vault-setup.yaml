@@ -1,0 +1,130 @@
+kind: ConfigMap
+metadata:
+  name:  cm-vault-setup
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+apiVersion: v1
+data:
+  playbook.yaml: |
+    ---
+    - name: Setup Vault
+      hosts: localhost
+      vars:
+        vault_namespace: {{ $.Release.Namespace }}
+        kube_api_url: {{ $.Values.kubernetes.apiserver }}
+      tasks:
+        - name: Retrieve Vault Pod
+          kubernetes.core.k8s_info:
+            kind: Pod
+            name: vault-0
+            namespace: '{{ "{{" }} vault_namespace {{ "}}" }}'
+          register: r_vault
+          retries: 120
+          delay: 5
+          until:
+            - r_vault.resources is defined
+            - r_vault.resources | length > 0
+            - r_vault.resources[0].status is defined
+            - r_vault.resources[0].status.phase is defined
+            - r_vault.resources[0].status.phase == 'Running'
+
+        - name: Copy unsealing key
+          ansible.builtin.shell: |
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} --stdin --tty -- cat /vault/data/vault-auto-unseal-keys.txt > /tmp/vault-auto-unseal-keys.txt
+          retries: 60
+          delay: 5
+          register: r_copy
+          until: r_copy is not failed        
+
+        - name: Get login token
+          ansible.builtin.shell: >-
+            grep -A 0 root_token /tmp/vault-auto-unseal-keys.txt | sed 's/root_token: //g'
+          register: r_token
+
+        - name: Set vault token fact
+          ansible.builtin.set_fact:
+            vault_token: '{{ "{{" }} r_token.stdout {{ "}}" }}'
+
+        - name: Create secret for Vault token
+          kubernetes.core.k8s:
+            state: present
+            definition:
+              kind: Secret
+              apiVersion: v1
+              metadata:
+                name: vault-token
+                namespace: '{{ "{{" }} vault_namespace {{ "}}" }}'
+              stringData:
+                token: '{{ "{{" }} vault_token {{ "}}" }}'
+              type: Opaque
+
+        - name: Login to vault
+          ansible.builtin.shell: |
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} --stdin --tty -- vault login {{ "{{" }} vault_token {{ "}}" }}
+          register: r_vault_login
+          until: r_vault_login is not failed
+          retries: 30
+          delay: 10
+
+        - name: Create vault policy
+          ansible.builtin.shell: |
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- bash -c 'rm -rf /tmp/rhdh-policy.hcl'
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- bash -c 'echo path \"*\" >> /tmp/rhdh-policy.hcl'
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- bash -c 'echo {  capabilities = [\"read\", \"list\"] >> /tmp/rhdh-policy.hcl'
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- bash -c 'echo } >> /tmp/rhdh-policy.hcl'
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- bash -c 'vault policy write rhdh-policy /tmp/rhdh-policy.hcl'
+
+        - name: Enable kubernetes auth
+          ansible.builtin.shell: |
+            export SA_SECRET_NAME=$(oc get secrets -n default --output=json \
+            | jq -r '.items[].metadata | select(.name|startswith("vault-auth-secret")).name')
+            export SA_JWT_TOKEN=$(oc get secret $SA_SECRET_NAME -n default \
+            --output 'go-template={{ "{{ \"{{\" }}" }} .data.token {{ "{{ \"}}\" }}" }}' | base64 --decode)
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- vault auth enable kubernetes
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- vault write auth/kubernetes/config \
+            token_reviewer_jwt="$SA_JWT_TOKEN" \
+            kubernetes_host="{{ "{{" }} kube_api_url {{ "}}" }}" \
+            issuer="https://kubernetes.default.svc.cluster.local"
+
+        - name: Create role and service account authentication
+          ansible.builtin.shell: |
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- vault write auth/kubernetes/role/rhdh-role \
+            bound_service_account_names=vault-auth \
+            bound_service_account_namespaces=default \
+            token_policies=rhdh-policy \
+            ttl=160h
+            export SA_SECRET_NAME=$(oc get secrets -n default --output=json \
+            | jq -r '.items[].metadata | select(.name|startswith("vault-auth-secret")).name')
+            export SA_JWT_TOKEN=$(oc get secret $SA_SECRET_NAME -n default \
+            --output 'go-template={{ "{{ \"{{\" }}" }} .data.token {{ "{{ \"}}\" }}" }}' | base64 --decode)
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- vault write auth/kubernetes/login role=rhdh-role jwt=$SA_JWT_TOKEN
+          register: r_create_role
+          until: r_create_role is succeeded
+          retries: 10
+          delay: 5
+
+        - name: Enable kv version 2
+          ansible.builtin.shell: |
+            oc exec vault-0 -n {{ "{{" }} vault_namespace {{ "}}" }} -- vault secrets enable -version=2 kv
+          ignore_errors: true
+
+        - name: Pre-populate known secrets
+          kubernetes.core.k8s_exec:
+            namespace: '{{ "{{" }} vault_namespace {{ "}}" }}'
+            pod: vault-0
+            command: '{{ "{{" }} item {{ "}}" }}'
+          loop:
+            - 'vault kv put kv/secrets/gitlab/root-password value={{ $.Values.secrets.gitlab.rootPassword }}'
+            - 'vault kv put kv/secrets/keycloak/client-secret clientId={{ $.Values.secrets.keycloak.clientId }} clientSecret={{ $.Values.secrets.keycloak.clientSecret }}'
+            - 'vault kv put kv/secrets/keycloak/plugin-client-secret value={{ $.Values.secrets.keycloak.pluginClientSecret }}'
+            - 'vault kv put kv/secrets/keycloak/openshift-client-secret value={{ $.Values.secrets.keycloak.openshiftClientSecret }}'
+            - 'vault kv put kv/secrets/rhdh/argocd-password value={{ $.Values.secrets.common.password }}'
+            - 'vault kv put kv/secrets/rhdh/postgresql-password value={{ $.Values.secrets.rhdh.postgresqlPassword }}'
+            - 'vault kv put kv/secrets/rhdh/orchestrator-token value={{ $.Values.secrets.orchestrator.token }}'
+            - 'vault kv put kv/secrets/common/password value={{ $.Values.secrets.common.password }}'
+{{- if $.Values.secrets.kafka.userPassword }}
+            - 'vault kv put kv/secrets/kafka/user-password value={{ $.Values.secrets.kafka.userPassword }}'
+{{- end }}
+{{- if and $.Values.secrets.litellm.apiUrl $.Values.secrets.litellm.apiKey }}
+            - 'vault kv put kv/secrets/litellm/credentials base_url={{ $.Values.secrets.litellm.apiUrl }} api_key={{ $.Values.secrets.litellm.apiKey }}'
+{{- end }}

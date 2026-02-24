@@ -1,0 +1,27 @@
+{{- if .Values.noobaa.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" .Values.noobaa.name "namespace" .Values.argocd.namespace "syncWave" "0") }}
+spec:
+  destination:
+    namespace: {{ .Values.noobaa.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  ignoreDifferences:
+    - group: noobaa.io
+      kind: NooBaa
+      jsonPointers:
+        - /metadata/labels
+        - /spec/coreResources
+        - /spec/dbResources
+        - /spec/endpoints
+  source:
+    path: noobaa
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        noobaa:
+          nameOverride: {{ .Values.noobaa.name }}
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}
+{{- end }}

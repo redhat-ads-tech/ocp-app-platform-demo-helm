@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "quay-registry.name" . }}-noobaa
+  namespace: {{ .Values.noobaa.namespace }}
+  labels:
+    {{- include "quay-registry.labels" . | nindent 4 }}
+  annotations:
+    {{- include "quay-registry.noobaa.argocd-syncwave" . | nindent 4 }}        
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- apiGroup: ""
+  kind: ServiceAccount
+  name: {{ include "quay-registry.name" . }}-noobaa
+  namespace: {{ .Release.Namespace }}

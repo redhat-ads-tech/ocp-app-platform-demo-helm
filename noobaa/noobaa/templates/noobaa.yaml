@@ -1,0 +1,30 @@
+apiVersion: noobaa.io/v1alpha1
+kind: NooBaa
+metadata:
+  name: {{ include "noobaa.name" . }}
+  labels:
+    {{- include "noobaa.labels" . | nindent 4 }}
+    app: noobaa
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    {{- include "noobaa.argocd-syncwave" . | nindent 4 }}
+  finalizers:
+    - noobaa.io/graceful_finalizer
+spec:
+  security:
+    {{- toYaml .Values.security | nindent 4 }}
+  coreResources:
+    {{- toYaml .Values.coreResources | nindent 4 }}
+  dbResources:
+    {{- toYaml .Values.dbResources | nindent 4 }}
+  dbVolumeResources:
+    {{- toYaml .Values.dbVolumeResources | nindent 4 }}
+  cleanupPolicy:
+    allowNoobaaDeletion: {{ .Values.cleanupPolicy.allowNoobaaDeletion }}
+  dbType: {{ .Values.dbType }}
+  endpoints:
+    {{- toYaml .Values.endpoints | nindent 4 }}
+  loadBalancerSourceSubnets:
+    {{- toYaml .Values.loadBalancerSourceSubnets | nindent 4 }}
+  labels:
+    {{- toYaml .Values.labels | nindent 4 }}

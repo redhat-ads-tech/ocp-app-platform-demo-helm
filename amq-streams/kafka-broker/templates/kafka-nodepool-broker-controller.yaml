@@ -1,0 +1,26 @@
+{{- if not .Values.kafka.controller.enabled -}}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: {{ include "kafka-broker.name" . }}-broker
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  labels:
+    strimzi.io/cluster: {{ include "kafka-broker.name" . }}
+  annotations:
+    {{- include "kafka-broker.argocd-syncwave" . | nindent 4 }}
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  replicas: {{ .Values.kafka.broker.replicas }}
+  roles:
+    - broker
+    - controller
+  resources:
+    {{- toYaml .Values.kafka.resources | nindent 4 }}
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: ephemeral
+{{ end }}

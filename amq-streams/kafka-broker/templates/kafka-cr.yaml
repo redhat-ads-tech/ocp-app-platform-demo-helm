@@ -1,0 +1,45 @@
+{{- if .Values.kafka.enabled -}}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: {{ include "kafka-broker.name" . }}
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  labels:
+    {{- include "kafka-broker.labels" . | nindent 4 }}
+  annotations:
+    strimzi.io/node-pools: enabled
+    strimzi.io/kraft: enabled
+    {{- include "kafka-broker.argocd-syncwave" . | nindent 4 }}
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  kafka:
+    version: {{ .Values.kafka.version }}
+    metadataVersion: {{ .Values.kafka.metadataVersion }}
+    {{- if eq .Values.authorization "simple" }}
+    authorization:
+      type: simple
+    {{- end }}
+    listeners:
+    - name: plain
+      port: 9092
+      type: internal
+      tls: false
+      {{- include "kafka-broker.authentication" . | nindent 6 }}
+    config:
+      allow.everyone.if.no.acl.found: 'true'
+      auto.create.topics.enable: {{ .Values.kafka.config.autoCreateTopics }}
+      offsets.topic.replication.factor: {{ .Values.kafka.config.offsetsTopicReplicationFactor }}
+      transaction.state.log.min.isr: {{ .Values.kafka.config.transactionStateLogMinIsr }}
+      transaction.state.log.replication.factor: {{ .Values.kafka.config.transactionStateLogReplicationFactor }}
+      default.replication.factor: {{ .Values.kafka.config.defaultReplicationFactor }}
+      min.insync.replicas: {{ .Values.kafka.config.minInsyncReplicas }}
+  entityOperator:
+    topicOperator:
+      resources:
+        {{- toYaml .Values.kafka.entityOperator.topicOperator.resources | nindent 8 }}
+    userOperator:
+      resources:
+        {{- toYaml .Values.kafka.entityOperator.userOperator.resources | nindent 8 }}
+{{- end }}

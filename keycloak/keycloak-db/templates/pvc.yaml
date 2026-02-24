@@ -1,0 +1,16 @@
+{{- if eq .Values.persistence.mode "persistent" -}}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "keycloak-db.name" . }}
+  labels:
+    {{- include "keycloak-db.labels" . | nindent 4 }}
+  annotations:
+    {{- include "keycloak-db.argocd-syncwave" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistence.capacity }}
+{{- end }}

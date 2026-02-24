@@ -1,0 +1,16 @@
+nameOverride: "amq-streams-console"
+fullnameOverride: ""
+
+namespace: openshift-operators
+
+subscription:
+  channel: amq-streams-2.9.x
+  installPlanApproval: Automatic
+  name: amq-streams-console
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+argocd:
+  enabled: true
+  operator:
+    syncwave: "-2"

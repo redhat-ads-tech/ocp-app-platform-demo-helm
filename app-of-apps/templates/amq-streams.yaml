@@ -1,0 +1,22 @@
+{{- if .Values.amqStreams.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" .Values.amqStreams.name "namespace" .Values.argocd.namespace "syncWave" "0") }}
+spec:
+  destination:
+    namespace: {{ .Values.amqStreams.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: amq-streams
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        kafka-broker:
+          namespace: {{ .Values.amqStreams.namespace }}
+        amq-streams-console:
+          namespace: {{ .Values.amqStreams.namespace }}
+          subdomain: {{ .Values.cluster.subdomain }}
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}
+{{- end }}

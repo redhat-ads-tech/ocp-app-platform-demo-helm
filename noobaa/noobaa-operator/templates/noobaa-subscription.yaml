@@ -1,0 +1,14 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ include "noobaa-operator.name" . }}-operator
+  namespace: {{ include "noobaa-operator.namespace" . }}
+  annotations:
+    {{- include "noobaa-operator.argocd-syncwave" . | nindent 4 }}
+spec:
+  channel: {{ .Values.noobaa.subscription.channel }}
+  installPlanApproval: {{ .Values.noobaa.subscription.installPlanApproval }}
+  name: {{ .Values.noobaa.subscription.name }}
+  source: {{ .Values.noobaa.subscription.source }}
+  sourceNamespace: {{ .Values.noobaa.subscription.sourceNamespace }}

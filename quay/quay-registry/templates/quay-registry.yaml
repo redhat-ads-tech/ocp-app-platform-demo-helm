@@ -1,0 +1,35 @@
+---
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: {{ include "quay-registry.name" . }}
+  labels:
+    {{- include "quay-registry.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    {{- include "quay-registry.quay.argocd-syncwave" . | nindent 4 }}
+spec:
+  configBundleSecret: {{ include "quay-registry.name" . }}-config-bundle
+  components:
+    - kind: postgres
+      {{- toYaml .Values.quay.component.postgres | nindent 6 }}
+    - kind: clairpostgres
+      {{- toYaml .Values.quay.component.clairpostgres | nindent 6 }}
+    - kind: objectstorage
+      {{- toYaml .Values.quay.component.objectstorage | nindent 6 }}
+    - kind: redis
+      {{- toYaml .Values.quay.component.redis | nindent 6 }}
+    - kind: tls
+      {{- toYaml .Values.quay.component.tls | nindent 6 }}
+    - kind: route
+      {{- toYaml .Values.quay.component.route | nindent 6 }}
+    - kind: clair
+      {{- toYaml .Values.quay.component.clair | nindent 6 }}
+    - kind: horizontalpodautoscaler
+      {{- toYaml .Values.quay.component.horizontalpodautoscaler | nindent 6 }}
+    - kind: mirror
+      {{- toYaml .Values.quay.component.mirror | nindent 6 }}
+    - kind: monitoring
+      {{- toYaml .Values.quay.component.monitoring | nindent 6 }}
+    - kind: quay
+      {{- toYaml .Values.quay.component.quay | nindent 6 }}

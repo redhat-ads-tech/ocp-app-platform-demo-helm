@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ArgoCD
+metadata:
+  finalizers:
+    - argoproj.io/finalizer
+  name: {{ include "gitops.name" . }}
+  labels:
+    {{- include "gitops.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+spec:
+  applicationInstanceLabelKey: argocd.argoproj.io/instance
+  applicationSet:
+    resources:
+      {{- toYaml .Values.applicationSet.resources | nindent 6 }}
+  controller:
+    processors: {}
+    resources:
+      {{- toYaml .Values.controller.resources | nindent 6 }}
+  initialSSHKnownHosts: {}
+  rbac:
+    defaultPolicy: role:readonly
+    policy: |
+      g, cluster-admins, role:admin
+  repo:
+    resources:
+      {{- toYaml .Values.repo.resources | nindent 6 }}
+  resourceExclusions: |
+    - apiGroups:
+      - tekton.dev
+      kinds:
+        - TaskRun
+        - PipelineRun
+  server:
+    autoscale:
+      enabled: false
+    grpc:
+      ingress:
+        enabled: false
+    ingress:
+      enabled: false
+    resources:
+      {{- toYaml .Values.server.resources | nindent 6 }}
+    route:
+      enabled: true
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: reencrypt
+    service:
+      type: ""
+  sso:
+    dex:
+      openShiftOAuth: true
+      resources:
+        {{- toYaml .Values.dex.resources | nindent 8 }}
+    provider: dex    
+  tls:
+    ca: {}
+

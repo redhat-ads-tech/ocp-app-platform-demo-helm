@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "redhat-developer-hub-prereqs.name" . }}-postgresql-svcbind-postgres
+  namespace: {{ include "redhat-developer-hub-prereqs.name" . }}
+  labels:
+    app.kubernetes.io/instance: {{ include "redhat-developer-hub-prereqs.name" . }}
+    app.kubernetes.io/name: postgresql
+    # app.kubernetes.io/managed-by: {{ .Release.Service }}
+type: servicebinding.io/postgresql
+stringData:
+  provider: "bitnami"
+  type: "postgresql"
+  host: "{{ include "redhat-developer-hub-prereqs.name" . }}-postgresql"
+  port: "5432"
+  username: "{{ .Values.backstage.postgresql.username | default "postgres" }}"
+  database: "{{ .Values.backstage.postgresql.database | default "postgres" }}"
+  password: "{{ .Values.backstage.postgresql.password }}"
+  postgres-password: "{{ .Values.backstage.postgresql.password }}"
+  uri: "postgresql://{{ .Values.backstage.postgresql.username | default "postgres" }}:{{ .Values.backstage.postgresql.password }}@{{ include "redhat-developer-hub-prereqs.name" . }}-postgresql:5432/{{ include "redhat-developer-hub-prereqs.name" . }}"

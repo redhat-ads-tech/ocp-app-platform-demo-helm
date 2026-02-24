@@ -1,0 +1,139 @@
+gitlab:
+  rootPassword:
+  host: 
+  email:
+    address: "gitlab@rhdemo.com"
+    displayName: "Gitlab"
+
+parasol:
+  group: parasol
+  db:
+    templates:
+      - project: parasol-db-manifests
+        branch: main
+        namespace: parasol-dev
+        templates:
+          - app/argocd/app.yaml
+        applications:
+          - app/argocd/app.yaml
+      - project: parasol-db-manifests
+        branch: staging
+        namespace: parasol-staging
+        templates:
+          - app/argocd/app.yaml
+        applications:
+          - app/argocd/app.yaml
+      - project: parasol-db-manifests
+        branch: prod
+        namespace: parasol-prod
+        templates:
+          - app/argocd/app.yaml
+        applications:
+          - app/argocd/app.yaml
+    argocd:
+      name: parasol-db
+      namespace: openshift-gitops
+  store:
+    templates:
+      - project: parasol-store-manifests
+        branch: main
+        namespace: parasol-dev
+        templates:
+          - app/argocd/app.yaml
+          - app/values/values-dev.yaml
+        applications:
+          - app/argocd/app.yaml
+      - project: parasol-store-manifests
+        branch: staging
+        namespace: parasol-staging
+        templates:
+          - app/argocd/app.yaml
+          - app/values/values-staging.yaml
+        applications:
+          - app/argocd/app.yaml
+      - project: parasol-store-manifests
+        branch: prod
+        namespace: parasol-prod
+        templates:
+          - app/argocd/app.yaml
+          - app/values/values-prod.yaml
+        applications:
+          - app/argocd/app.yaml
+    argocd:
+      name: parasol-store
+      namespace: openshift-gitops
+    image:
+      source:
+        image: quay.io/redhat_pe_workshop/parasol-store
+        tag: "4574702"
+      name: parasol-store
+      tag: "4574702"
+  web:
+    templates:
+      - project: parasol-web-manifests
+        branch: main
+        namespace: parasol-dev
+        environment: dev
+        store:
+          url: http://parasol-store:8080
+          service: parasol-store
+        templates:
+          - app/argocd/app.yaml
+          - app/values/values-dev.yaml
+        applications:
+          - app/argocd/app.yaml
+      - project: parasol-web-manifests
+        branch: staging
+        namespace: parasol-staging
+        environment: staging
+        store:
+          url: http://parasol-store:8080
+          service: parasol-store
+        templates:
+          - app/argocd/app.yaml
+          - app/values/values-staging.yaml
+        applications:
+          - app/argocd/app.yaml
+      - project: parasol-web-manifests
+        branch: prod
+        namespace: parasol-prod
+        environment: prod
+        store:
+          url: http://parasol-store:8080
+          service: parasol-store
+        templates:
+          - app/argocd/app.yaml
+          - app/values/values-prod.yaml
+        applications:
+          - app/argocd/app.yaml
+    argocd:
+      name: parasol-web
+      namespace: openshift-gitops
+    image:
+      source:
+        image: quay.io/redhat_pe_workshop/parasol-web
+        tag: "38fdc87"
+      name: parasol-web
+      tag: 38fdc87
+    sso:
+      dev:
+        host:
+        realm: parasol
+        client: parasol-web-gateway
+      staging:
+        host:
+        realm: parasol
+        client: parasol-web-gateway
+      prod:
+        host:
+        realm: parasol
+        client: parasol-web-gateway
+
+registry:
+  host:
+  organization: parasol
+  username:
+  password:
+
+cluster:
+  subdomain:

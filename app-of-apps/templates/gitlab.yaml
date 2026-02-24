@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" .Values.gitlab.name "namespace" .Values.argocd.namespace "syncWave" "1") }}
+spec:
+  destination:
+    namespace: {{ .Values.gitlab.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: gitlab
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      parameters:
+        - name: gitlab.smtp.host
+          value: {{ .Values.gitlab.smtp.host | quote }}
+        - name: gitlab.ssh.host
+          value: {{ .Values.gitlab.ssh.host | quote }}
+        - name: gitlab.rootPassword
+          value: {{ .Values.gitlab.rootPassword | quote }}
+        - name: gitlab.users.password
+          value: {{ .Values.gitlab.usersPassword | quote }}
+        - name: gitlab.host
+          value: {{ .Values.gitlab.host }}
+        - name: cluster.subdomain
+          value: {{ .Values.gitlab.cluster.subdomain }}
+        - name: gitops.namespace
+          value: {{ .Values.gitlab.gitops.namespace }}
+        - name: quay.host
+          value: {{ .Values.gitlab.quay.host }}
+        - name: vault.name
+          value: {{ .Values.vault.name }}
+        - name: vault.namespace
+          value: {{ .Values.vault.namespace }}
+        - name: orchestrator.namespace
+          value: {{ .Values.orchestrator.namespace }}
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}

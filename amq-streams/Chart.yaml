@@ -1,0 +1,19 @@
+apiVersion: v2
+name: amq-streams
+description: A Helm chart for AMQ Streams (Kafka) with Streams Console
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: amq-streams-operator
+    version: 0.1.0
+    repository: file://amq-streams-operator
+  - name: amq-streams-console-operator
+    version: 0.1.0
+    repository: file://amq-streams-console-operator
+  - name: kafka-broker
+    version: 0.1.0
+    repository: file://kafka-broker
+  - name: amq-streams-console
+    version: 0.1.0
+    repository: file://amq-streams-console

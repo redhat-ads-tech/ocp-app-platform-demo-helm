@@ -1,0 +1,25 @@
+nameOverride: "devspaces"
+fullnameOverride: ""
+
+namespace: ""
+
+devEnvironments:
+  startTimeoutSeconds: 300
+  secondsOfRunBeforeIdling: 600
+  maxNumberOfWorkspacesPerUser: 2
+  defaultEditor: che-incubator/che-code/latest
+  resources:
+    limits:
+      memory: 2Gi
+      cpu: "2"
+    requests:
+      memory: 512Mi
+      cpu: 250m
+
+gitlab:
+  host: ""
+
+argocd:
+  enabled: true
+  instance:
+    syncwave: "0"

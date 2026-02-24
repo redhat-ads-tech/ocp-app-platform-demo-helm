@@ -1,0 +1,54 @@
+{{- if eq .Values.authentication.saslMechanism "SCRAM-SHA-512" -}}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: {{ .Values.authentication.clientId }}
+  {{- if .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+  {{- end }}
+  labels:
+    {{- include "kafka-broker.labels" . | nindent 4 }}
+    strimzi.io/cluster: {{ include "kafka-broker.name" . }}
+  annotations:
+    {{- include "kafka-broker.argocd-syncwave" . | nindent 4 }}
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  authentication:
+    type: scram-sha-512
+    password:
+      valueFrom:
+        secretKeyRef:
+          name: {{ include "kafka-broker.name" . }}-user-secret
+          key: clientSecret
+  {{- if eq .Values.authorization "simple" }}
+  authorization:
+    type: simple
+    acls:
+      - operations:
+          - Describe
+        resource:
+          type: cluster
+      - operations:
+          - Create
+          - Describe
+          - Read
+          - Write
+        resource:
+          name: '*'
+          patternType: literal
+          type: topic
+      - operations:
+          - Read
+        resource:
+          name: '*'
+          patternType: literal
+          type: group
+      - operations:
+          - Read
+          - Describe
+        resource:
+          name: '*'
+          patternType: literal
+          type: transactionalId
+  {{- end }}
+{{- end }}

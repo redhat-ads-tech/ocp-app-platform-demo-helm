@@ -1,0 +1,73 @@
+nameOverride: "quay"
+
+quay:
+  displayName: "RHDH Quay"
+  host:
+  tls: true
+  configureAdmin: true
+  adminUser: quayadmin
+  adminUserPassword: 
+  userInitialize: true
+  component:
+    postgres:
+      managed: true
+      overrides:
+        resources:
+          requests:
+            cpu: 125m
+            memory: 1Gi
+    clairpostgres:
+      managed: true
+      overrides:
+        resources:
+          requests:
+            cpu: 125m
+            memory: 1Gi
+    objectstorage:
+      managed: true
+    redis:
+      managed: true
+    tls:
+      managed: true
+    route:
+      managed: true
+    clair:
+      managed: true
+      overrides:
+        resources:
+          requests:
+            cpu: 125m
+            memory: 1Gi
+    horizontalpodautoscaler:
+      managed: false
+    mirror:
+      managed: false
+    monitoring:
+      managed: false
+    quay:
+      managed: true
+      overrides:
+        resources:
+          requests:
+            cpu: 125m
+            memory: 1Gi
+  organizations: []
+  users: []
+
+
+noobaa:
+  name: noobaa
+  namespace: openshift-storage
+
+vault:
+  name: vault
+  namespace: vault
+
+argocd:
+  enabled: true
+  noobaa:
+    syncwave: "-2"
+  quay:
+    syncwave: "0"
+  config:
+    syncwave: "1"

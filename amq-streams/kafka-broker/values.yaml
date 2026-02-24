@@ -1,0 +1,60 @@
+nameOverride: "kafka"
+
+kafka:
+  enabled: true
+  version: 4.1.0
+  metadataVersion: 4.1-IV1
+  broker:
+    replicas: 1
+  controller:
+    enabled: false
+  config:
+    autoCreateTopics: false
+    defaultReplicationFactor: 1
+    offsetsTopicReplicationFactor: 1
+    transactionStateLogReplicationFactor: 1
+    transactionStateLogMinIsr: 1
+    minInsyncReplicas: 1
+  entityOperator:
+    topicOperator:
+      resources:
+        limits:
+          cpu: 500m
+          memory: 500M
+        requests:
+          cpu: 250m
+          memory: 250M
+    userOperator:
+      resources:
+        limits:
+          cpu: 250m
+          memory: 250M
+        requests:
+          cpu: 150m
+          memory: 150M
+  resources:
+    limits:
+      cpu: '1'
+      memory: 2G
+    requests:
+      cpu: 300m
+      memory: 500M
+
+namespace:
+
+authentication:
+  clientId: franz
+  saslMechanism: SCRAM-SHA-512
+
+authorization: simple
+
+topics:
+  - name: intake
+    partitions: 1
+    retention: -1
+
+argocd:
+  syncwave:
+    enabled: true
+    kafka: "0"
+    namespace: "-1"

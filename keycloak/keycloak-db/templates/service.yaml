@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "keycloak-db.name" . }}
+  labels:
+    {{- include "keycloak-db.labels" . | nindent 4 }}
+  annotations:
+    {{- include "keycloak-db.argocd-syncwave" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: {{ .Values.service.portName }}
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.containerPort }}
+  selector:
+    {{- include "keycloak-db.selectorLabels" . | nindent 4 }}

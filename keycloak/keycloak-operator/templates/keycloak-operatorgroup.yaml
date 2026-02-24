@@ -1,0 +1,11 @@
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: "{{ include "keycloak-operator.name" . }}-operatorgroup"
+  namespace: {{ include "keycloak-operator.namespace" . }}
+  annotations:
+    {{- include "keycloak-operatorgroup.argocd-syncwave" . | nindent 4 }}
+spec:
+  targetNamespaces:
+    - {{ include "keycloak-operator.namespace" . }}

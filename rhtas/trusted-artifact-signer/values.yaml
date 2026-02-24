@@ -1,0 +1,5 @@
+nameOverride: ""
+
+argocd:
+  enabled: true
+  syncwave: "2"

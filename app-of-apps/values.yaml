@@ -1,0 +1,176 @@
+gitops:
+  repoURL: https://github.com/evanshortiss/etx-app-platform-helm.git
+  targetRevision: main
+
+argocd:
+  namespace: openshift-gitops
+
+cluster:
+  subdomain: ""
+  apiServer: ""
+
+common:
+  password: ""
+
+vault:
+  name: vault
+  namespace: vault
+  authNamespace: default
+  secrets:
+    gitlab:
+      rootPassword: ""
+    keycloak:
+      clientId: backstage
+      clientSecret: ""
+      pluginClientSecret: ""
+      openshiftClientSecret: ""
+    rhdh:
+      argocdPassword: ""
+      postgresqlPassword: password
+    orchestrator:
+      token: ""
+    common:
+      password: ""
+    litellm:
+      apiUrl: ""
+      apiKey: ""
+    kafka:
+      userPassword: ""
+
+externalSecrets:
+  name: external-secrets
+  namespace: external-secrets
+
+openshiftPipelines:
+  name: openshift-pipelines
+  namespace: openshift-operators
+
+noobaa:
+  enabled: true
+  name: noobaa
+  namespace: openshift-storage
+
+gitlab:
+  name: gitlab
+  namespace: gitlab
+  host: ""
+  smtp:
+    host: ""
+  ssh:
+    host: ""
+  rootPassword: ""
+  usersPassword: ""
+  cluster:
+    subdomain: ""
+  gitops:
+    namespace: ""
+  quay:
+    host: ""
+
+keycloak:
+  name: keycloak
+  namespace: keycloak
+  crName: keycloak
+  externalAccess: false
+  route:
+    host: ""
+  realm:
+    name: backstage
+  client:
+    backstage:
+      name: backstage
+      redirectUri: ""
+      webOrigin: ""
+      secret: ""
+    backstagePlugin:
+      name: backstage-plugin
+      secret: ""
+    openshift:
+      name: openshift
+      redirectUri: ""
+      secret: ""
+  users:
+    password: ""
+
+quay:
+  name: quay
+  namespace: quay-registry
+  host: ""
+  adminUser: quayadmin
+  adminUserPassword: ""
+  organizations:
+    - parasol
+  users: []
+
+rhdhGitops:
+  name: rhdh-gitops
+  namespace: rhdh-gitops
+  password: ""
+
+rhdh:
+  name: backstage-bootstrap
+  namespace: backstage
+  configTemplate:
+    gitlab:
+      rootPassword: ""
+      host: ""
+    backstage:
+      host: ""
+    keycloak:
+      host: ""
+      realm: backstage
+      loginRealm: backstage
+      clientId: backstage-plugin
+      clientSecret: ""
+    gitops:
+      host: ""
+    kubernetes:
+      api: ""
+    cluster:
+      subdomain: ""
+  application:
+    gitops:
+      namespace: openshift-gitops
+    helm:
+      version: 1.8.2
+      values:
+        git:
+          host: ""
+
+rhtas:
+  name: trusted-artifact-signer
+  namespace: trusted-artifact-signer
+  instance: securesign
+  oidcIssuer: ""
+  rootCert:
+    email: admin@rhdemo.com
+    org: Parasol
+
+openshiftOAuth:
+  name: openshift-oauth
+  namespace: openshift-config
+
+devspaces:
+  enabled: true
+  name: devspaces
+  namespace: openshift-devspaces
+
+amqStreams:
+  enabled: true
+  name: amq-streams
+  namespace: kafka
+
+parasol:
+  name: parasol
+  namespace: parasol-dev
+
+orchestrator:
+  name: orchestrator
+  namespace: backstage
+  backstage:
+    backend:
+      url: ""
+  openshift:
+    url: ""
+  gitlab:
+    url: ""

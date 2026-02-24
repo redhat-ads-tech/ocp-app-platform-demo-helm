@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "quay-registry.name" . }}-noobaa
+  annotations:
+    {{- include "quay-registry.noobaa.argocd-syncwave" . | nindent 4 }}
+spec:
+  backoffLimit: 100
+  template:
+    spec:
+      containers:
+      - name: noobaa-status
+        command:
+          - /bin/bash
+          - '-c'
+          - |
+            set -x
+            ansible-playbook -i localhost /scripts/playbook.yaml
+        image: quay.io/agnosticd/ee-multicloud:latest
+        volumeMounts:
+          - mountPath: /scripts
+            name: noobaa-status-vol
+      restartPolicy: Never
+      serviceAccount: {{ include "quay-registry.name" . }}-noobaa
+      volumes:
+      - name: noobaa-status-vol
+        configMap:
+          name: {{ include "quay-registry.name" . }}-noobaa

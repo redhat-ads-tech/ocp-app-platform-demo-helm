@@ -1,0 +1,5 @@
+vault:
+  namespace: vault
+  name: vault
+  auth:
+    namespace: default

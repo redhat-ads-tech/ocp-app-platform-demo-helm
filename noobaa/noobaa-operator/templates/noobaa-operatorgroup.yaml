@@ -1,0 +1,11 @@
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: "{{ include "noobaa-operator.name" . }}-operatorgroup"
+  namespace: {{ include "noobaa-operator.namespace" . }}
+  annotations:
+    {{- include "noobaa-operatorgroup.argocd-syncwave" . | nindent 4 }}
+spec:
+  targetNamespaces:
+    - {{ include "noobaa-operator.namespace" . }}

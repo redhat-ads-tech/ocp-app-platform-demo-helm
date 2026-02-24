@@ -1,0 +1,5 @@
+apiVersion: v2
+name: openshift-oauth
+description: Configures OpenShift OAuth with Keycloak as an OpenID Connect identity provider
+type: application
+version: 0.1.0

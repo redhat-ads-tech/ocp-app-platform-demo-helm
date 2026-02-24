@@ -1,0 +1,42 @@
+nameOverride: ""
+fullnameOverride: ""
+
+security:
+  kms: {}
+coreResources:
+  limits:
+    cpu: 999m
+    memory: 4Gi
+  requests:
+    cpu: 125m
+    memory: 1Gi
+dbResources:
+  limits:
+    cpu: 500m
+    memory: 4Gi
+  requests:
+    cpu: 125m
+    memory: 250Mi
+dbVolumeResources:
+  requests:
+    storage: 50Gi
+cleanupPolicy:
+  allowNoobaaDeletion: true
+dbType: postgres
+endpoints:
+  maxCount: 2
+  minCount: 1
+  resources:
+    limits:
+      cpu: 999m
+      memory: 2Gi
+    requests:
+      cpu: 125m
+      memory: 250Mi
+loadBalancerSourceSubnets: {}
+labels:
+  monitoring: {}
+
+argocd:
+  enabled: true
+  syncwave: "-1"

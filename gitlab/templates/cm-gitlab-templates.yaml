@@ -1,0 +1,115 @@
+kind: ConfigMap
+metadata:
+  name:  cm-gitlab-templates
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+apiVersion: v1
+data:
+  playbook.yaml: |
+    ---
+    - name: Configure GitLab
+      hosts: localhost
+      vars:
+        gitlab_namespace: {{ $.Release.Namespace }}
+        root_password: {{ $.Values.gitlab.rootPassword }}
+        user_create: true
+      tasks:
+        - name: Check GitLab Liveness
+          ansible.builtin.uri:
+            url: https://{{ $.Values.gitlab.host }}/api/v4/projects
+            method: GET
+            validate_certs: false
+          register: r_liveness
+          retries: 60
+          delay: 10
+          until: r_liveness.status == 200
+
+        - name: Retrieve root token
+          kubernetes.core.k8s_info:
+            api_version: v1
+            kind: Secret
+            name: root-user-personal-token
+            namespace: '{{ "{{" }} gitlab_namespace {{ "}}" }}'
+          register: r_root_token
+          failed_when: r_root_token.resources[0].data.token | length == 0
+
+        - name: Decode root token
+          set_fact:
+            root_token: '{{ "{{" }} r_root_token.resources[0].data.token | b64decode {{ "}}" }}'
+
+        - name: Git config
+          ansible.builtin.command: git config --global user.email "{{ $.Values.gitlab.email.address }}"
+          ignore_errors: true
+
+        - name: Git config
+          ansible.builtin.command: git config --global user.name "{{ $.Values.gitlab.email.displayName }}"
+          ignore_errors: true
+
+{{- range $item := .Values.gitlab.templates }}
+
+        - name: Build git repo url
+          ansible.builtin.set_fact:
+            _git_template_repo_url: https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/{{ $item.group }}/{{ $item.project }}
+
+        - name: Remove older repo folders
+          shell: rm -rf /tmp/{{ $item.project }}
+
+        - name: Clone {{ $item.project }}
+          ansible.builtin.git:
+            accept_hostkey: true
+            force: true
+            repo: '{{ "{{" }} _git_template_repo_url {{ "}}" }}'
+            dest: "/tmp/{{ $item.project }}"
+            version: "{{ $item.branch }}"
+          environment:
+            GIT_SSL_NO_VERIFY: "true"
+          register: r_git_clone
+          retries: 60
+          delay: 10
+          until: r_git_clone is not failed
+
+{{- range $item1 := $item.templates }}
+
+        - name: Replace template variables in /tmp/{{ $item.project }}/{{ $item1 }}
+          ansible.builtin.replace:
+            path: /tmp/{{ $item.project }}/{{ $item1 }}
+            regexp: '\{\{\s*{{ "{{" }} item.key {{ "}}" }}\s*\}\}'
+            replace: '{{ "{{" }} item.value {{ "}}" }}'
+          loop:
+            - key: gitlab_host
+              value: "{{ $.Values.gitlab.host }}"
+            - key: cluster_subdomain
+              value: "{{ $.Values.cluster.subdomain }}"
+            - key: rhdh_gitops_namespace
+              value: "{{ $.Values.gitops.namespace }}"
+            - key: rhdh_gitops_project
+              value: "{{ $.Values.gitops.project }}"
+            - key: quay_host
+              value: "{{ $.Values.quay.host }}"
+            - key: orchestrator_namespace
+              value: "{{ $.Values.orchestrator.namespace }}"
+{{- end }}
+
+        - name: Add new files to the repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: "git add ."
+          ignore_errors: true
+
+        - name: Commit changes to the repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: >-
+              git commit -a -m 'gitlab init: updates for starting scenario.'
+          ignore_errors: true
+
+        - name: Push all changes back to the project repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: >-
+              git push {{ "{{" }} _git_template_repo_url {{ "}}" }}
+
+{{- end }}

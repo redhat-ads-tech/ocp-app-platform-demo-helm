@@ -1,0 +1,80 @@
+keycloak:
+  name: keycloak
+
+realm:
+  name: backstage
+
+hook:
+  image:
+    repository: quay.io/cloud-architecture-workshop/wait-for-statefulset-job
+    pullPolicy: IfNotPresent
+    tag: "1c68180"
+  serviceAccount:
+    create: true
+    name: ""
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  maxTimeToWait: 120000
+
+users:
+  users:
+    - id: dev1      
+      groups:
+        - developers
+        - devteam1
+    - id: dev2
+      groups:
+        - developers
+        - devteam1
+    - id: pe1
+      groups:
+        - platformengineers
+        - rhdh
+    - id: pe2
+      groups:
+        - platformengineers
+        - rhdh
+    - id: pipeline
+      groups:
+        - infrastructure
+  password:
+
+groups:
+  - name: developers
+  - name: devteam1
+  - name: platformengineers
+  - name: rhdh
+  - name: infrastructure
+
+client:
+  backstage:
+    name:
+    redirectUri:
+    webOrigin:
+    secret:
+  backstagePlugin:
+    name:
+    redirectUri:
+    webOrigin:
+    secret:
+  openshift:
+    name: openshift
+    redirectUri: ""
+    secret:
+  trustedartifactsigner:
+    name: trusted-artifact-signer
+    redirectUri:
+      - urn:ietf:wg:oauth:2.0:oob
+      - "*"
+
+argocd:
+  enabled: true
+  syncwave: "-1"
+
