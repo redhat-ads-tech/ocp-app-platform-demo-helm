@@ -1,6 +1,6 @@
 # Platform Engineering Workshop — Helm Charts
 
-Helm charts that deploy a complete Platform Engineering workshop environment on OpenShift 4.x. Designed for use with the [platform-engineering-workshop](https://github.com/rhpds/platform-engineering-workshop) Ansible-based deployer, which bootstraps the cluster and deploys a single Argo CD `Application` CR pointing to the `app-of-apps/` chart. From there, Argo CD manages everything.
+Helm charts that deploy a complete OpenShift Advanced Application Platform Demo environment on OpenShift 4.x. Designed for use with [this Ansible-based deployer](https://github.com/redhat-ads-tech/etx-ansible-roles-agd), which bootstraps the cluster and deploys a single Argo CD `Application` CR pointing to the `app-of-apps/` chart. From there, Argo CD manages everything.
 
 > [!NOTE]
 > This is a **workshop/demo environment**. Some design choices (storing passwords in Vault at deploy time, broad RBAC grants, shared credentials) reflect that priority. Don't use this as a production reference architecture.
