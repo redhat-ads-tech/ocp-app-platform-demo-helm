@@ -9,6 +9,7 @@ subscription:
   name: amq-streams
   source: redhat-operators
   sourceNamespace: openshift-marketplace
+  operationTimeoutMs: "600000"
 
 argocd:
   enabled: true

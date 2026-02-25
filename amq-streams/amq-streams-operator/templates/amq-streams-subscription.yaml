@@ -12,3 +12,7 @@ spec:
   name: {{ .Values.subscription.name }}
   source: {{ .Values.subscription.source }}
   sourceNamespace: {{ .Values.subscription.sourceNamespace }}
+  config:
+    env:
+      - name: STRIMZI_OPERATION_TIMEOUT_MS
+        value: "{{ .Values.subscription.operationTimeoutMs }}"

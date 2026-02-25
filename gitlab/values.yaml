@@ -113,17 +113,27 @@ gitlab:
   templates:
     - group: rhdh
       project: template-quarkus-simple
-      branch: main
+      branch: dev
       templates:
         - template.yaml
     - group: rhdh
       project: import-existing-app-template
-      branch: main
+      branch: dev
       templates:
         - template.yaml
     - group: rhdh
       project: import-existing-api-template
-      branch: main
+      branch: dev
+      templates:
+        - template.yaml
+    - group: rhdh
+      project: parasol-store-dev-template
+      branch: dev
+      templates:
+        - template.yaml
+    - group: rhdh
+      project: parasol-store-dev-template-secure
+      branch: dev
       templates:
         - template.yaml
     - group: global

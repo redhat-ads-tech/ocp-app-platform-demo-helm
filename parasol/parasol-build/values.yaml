@@ -20,7 +20,7 @@ parasol:
           - argocd/app-build.yaml
     argocd:
       name: parasol-store-build
-      namespace: openshift-gitops
+      namespace: rhdh-gitops
     image:
       name: parasol-store
     gitlab:

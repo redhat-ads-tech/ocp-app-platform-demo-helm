@@ -11,8 +11,8 @@ syncPolicy:
     backoff:
       duration: 5s
       factor: 2
-      maxDuration: 5m0s
-    limit: 20
+      maxDuration: 2m0s
+    limit: 30
   syncOptions:
     - CreateNamespace=true
     - RespectIgnoreDifferences=true

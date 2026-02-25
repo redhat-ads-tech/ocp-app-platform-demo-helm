@@ -32,7 +32,7 @@ parasol:
           - app/argocd/app.yaml
     argocd:
       name: parasol-db
-      namespace: openshift-gitops
+      namespace: rhdh-gitops
   store:
     templates:
       - project: parasol-store-manifests
@@ -61,7 +61,7 @@ parasol:
           - app/argocd/app.yaml
     argocd:
       name: parasol-store
-      namespace: openshift-gitops
+      namespace: rhdh-gitops
     image:
       source:
         image: quay.io/redhat_pe_workshop/parasol-store
@@ -108,7 +108,7 @@ parasol:
           - app/argocd/app.yaml
     argocd:
       name: parasol-web
-      namespace: openshift-gitops
+      namespace: rhdh-gitops
     image:
       source:
         image: quay.io/redhat_pe_workshop/parasol-web
