@@ -118,6 +118,10 @@ developerHub:
       host: ""
     kubernetes:
       apiUrl: ""
+    keycloak:
+      host: ""
+      realm: backstage
+      loginRealm: backstage
   application:
     git:
       host: "github.com"

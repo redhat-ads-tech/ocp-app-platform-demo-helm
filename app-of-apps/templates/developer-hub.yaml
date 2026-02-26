@@ -39,4 +39,8 @@ spec:
           host: {{ .Values.developerHub.config.argocd.host }}
         kubernetes:
           apiUrl: {{ .Values.developerHub.config.kubernetes.apiUrl }}
+        keycloak:
+          host: {{ .Values.developerHub.config.keycloak.host }}
+          realm: {{ .Values.developerHub.config.keycloak.realm }}
+          loginRealm: {{ .Values.developerHub.config.keycloak.loginRealm }}
 {{ include "app-of-apps.syncPolicy" . | indent 2 }}
