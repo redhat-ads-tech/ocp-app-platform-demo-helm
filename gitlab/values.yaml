@@ -32,31 +32,12 @@ gitlab:
   groups:
     - name: rhdh
       repo:
-        - name: template-quarkus-simple
-          url: https://github.com/redhat-pe-workshop/rhdh-template-quarkus-simple.git
-          defaultBranch: dev
-        - name: parasol-store-dev-template
-          url: https://github.com/redhat-pe-workshop/parasol-store-dev-templates.git
-          defaultBranch: dev
-        - name: parasol-store-dev-template-secure
-          url: https://github.com/redhat-pe-workshop/parasol-store-dev-template-secured.git
-          defaultBranch: dev
         - name: developer-hub-config
           url: https://github.com/redhat-ads-tech/ocp-app-platform-demo-developer-hub-config.git
-        - name: import-existing-app-template
-          url: https://github.com/redhat-pe-workshop/import-existing-app-template.git
-          defaultBranch: dev
-        - name: import-existing-api-template
-          url: https://github.com/redhat-pe-workshop/import-api-template.git
-          defaultBranch: dev
-        - name: devfiles
-          url: https://github.com/redhat-pe-workshop/devfiles.git
         - name: rhdh-entities
           url: https://github.com/redhat-pe-workshop/pe-workshop-entities.git
         - name: template-developer-self-service
           url: https://github.com/redhat-pe-workshop/rhdh-template-developer-self-service.git
-        - name: orchestrator-workflows
-          url: https://github.com/redhat-pe-workshop/orchestrator-workflows.git
       users:
         - id: pe1
         - id: pe2
