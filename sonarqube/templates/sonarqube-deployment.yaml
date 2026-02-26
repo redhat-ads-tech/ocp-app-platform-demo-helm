@@ -55,6 +55,10 @@ spec:
               value: "false"
             - name: SONAR_AUTOCREATE_USERS
               value: "true"
+            - name: SONAR_SECURITY_REALM
+              value: ""
+            - name: LDAP_REALM
+              value: ""
           resources:
             {{- toYaml .Values.sonarqube.resources | nindent 12 }}
           livenessProbe:
