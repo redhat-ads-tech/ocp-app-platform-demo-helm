@@ -1,0 +1,11 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: rhdh-operator
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "developer-hub-prereqs.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  upgradeStrategy: Default

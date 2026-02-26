@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sa-token-writer
+  labels:
+    {{- include "developer-hub-prereqs.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      serviceAccountName: default
+      restartPolicy: OnFailure
+      containers:
+        - name: sa-token-writer
+          image: quay.io/agnosticd/ee-multicloud:latest
+          command:
+            - ansible-playbook
+            - /playbook/playbook.yaml
+          volumeMounts:
+            - name: playbook
+              mountPath: /playbook
+      volumes:
+        - name: playbook
+          configMap:
+            name: sa-token-writer

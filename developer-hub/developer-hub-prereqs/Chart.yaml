@@ -1,0 +1,5 @@
+apiVersion: v2
+name: developer-hub-prereqs
+description: Prerequisites for Developer Hub via the RHDH Operator
+type: application
+version: 0.1.0

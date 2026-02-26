@@ -1,0 +1,14 @@
+nameOverride: "developer-hub-prereqs"
+
+namespace: rhdh
+
+vault:
+  namespace: vault
+  name: vault
+
+operator:
+  channel: fast-1.8
+
+argocd:
+  enabled: true
+  syncwave: "-1"

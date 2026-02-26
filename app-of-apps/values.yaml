@@ -106,6 +106,25 @@ quay:
     - parasol
   users: []
 
+developerHub:
+  name: developer-hub
+  namespace: rhdh
+  config:
+    backstage:
+      host: ""
+    gitlab:
+      host: ""
+    argocd:
+      host: ""
+    kubernetes:
+      apiUrl: ""
+  application:
+    git:
+      host: "github.com"
+      group: redhat-ads-tech
+      repo: ocp-app-platform-rhdh-config
+      revision: main
+
 rhdhGitops:
   name: rhdh-gitops
   namespace: rhdh-gitops
