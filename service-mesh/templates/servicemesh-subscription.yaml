@@ -1,0 +1,11 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ include "service-mesh.name" . }}-operator
+spec:
+  channel: {{ .Values.serviceMesh.channel }}
+  installPlanApproval: {{ .Values.serviceMesh.installPlanApproval }}
+  name: {{ .Values.serviceMesh.name }}
+  source: {{ .Values.serviceMesh.source }}
+  sourceNamespace: {{ .Values.serviceMesh.sourceNamespace }}

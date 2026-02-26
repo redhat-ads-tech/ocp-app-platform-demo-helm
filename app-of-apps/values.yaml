@@ -45,6 +45,10 @@ openshiftPipelines:
   name: openshift-pipelines
   namespace: openshift-operators
 
+serviceMesh:
+  name: service-mesh
+  namespace: openshift-operators
+
 noobaa:
   enabled: true
   name: noobaa

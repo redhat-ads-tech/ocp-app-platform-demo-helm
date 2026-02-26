@@ -1,0 +1,11 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: kiali-operator
+spec:
+  channel: {{ .Values.kiali.channel }}
+  installPlanApproval: {{ .Values.kiali.installPlanApproval }}
+  name: {{ .Values.kiali.name }}
+  source: {{ .Values.kiali.source }}
+  sourceNamespace: {{ .Values.kiali.sourceNamespace }}
