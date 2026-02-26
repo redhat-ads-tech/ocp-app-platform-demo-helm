@@ -1,0 +1,33 @@
+nameOverride: ""
+
+adminPassword: ""
+
+sonarqube:
+  image: quay.io/kenmoini/sonarqube:34b8fd8
+  replicas: 1
+  port: 9000
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+  persistence:
+    size: 5Gi
+  route:
+    enabled: true
+    tlsTermination: edge
+
+postgresql:
+  image: image-registry.openshift-image-registry.svc:5000/openshift/postgresql
+  replicas: 1
+  port: 5432
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      memory: 1Gi
+  persistence:
+    size: 5Gi
+  database: sonar
+  username: sonaruser
+  password: ""

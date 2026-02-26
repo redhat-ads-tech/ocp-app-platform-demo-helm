@@ -168,6 +168,10 @@ parasol:
   name: parasol
   namespace: parasol-dev
 
+sonarqube:
+  name: sonarqube
+  namespace: sonarqube
+
 orchestrator:
   name: orchestrator
   namespace: backstage

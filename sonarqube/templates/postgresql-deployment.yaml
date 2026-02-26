@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonardb
+  labels:
+    {{- include "sonarqube.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.postgresql.replicas }}
+  revisionHistoryLimit: 10
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: sonardb
+  template:
+    metadata:
+      labels:
+        name: sonardb
+        {{- include "sonarqube.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgresql
+          image: {{ .Values.postgresql.image }}
+          ports:
+            - containerPort: {{ .Values.postgresql.port }}
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sonardb
+                  key: database-user
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sonardb
+                  key: database-password
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: sonardb
+                  key: database-name
+          resources:
+            {{- toYaml .Values.postgresql.resources | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.postgresql.port }}
+            initialDelaySeconds: 30
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
+            initialDelaySeconds: 5
+          volumeMounts:
+            - name: sonardb-data
+              mountPath: /var/lib/pgsql/data
+      volumes:
+        - name: sonardb-data
+          persistentVolumeClaim:
+            claimName: sonardb

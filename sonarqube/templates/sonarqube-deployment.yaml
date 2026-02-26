@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube
+  labels:
+    {{- include "sonarqube.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.sonarqube.replicas }}
+  revisionHistoryLimit: 10
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: sonarqube
+  template:
+    metadata:
+      labels:
+        name: sonarqube
+        {{- include "sonarqube.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: sonarqube
+          image: {{ .Values.sonarqube.image }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.sonarqube.port }}
+              protocol: TCP
+          env:
+            - name: JDBC_URL
+              value: jdbc:postgresql://sonardb:{{ .Values.postgresql.port }}/{{ .Values.postgresql.database }}
+            - name: SONAR_JDBC_URL
+              value: jdbc:postgresql://sonardb:{{ .Values.postgresql.port }}/{{ .Values.postgresql.database }}
+            - name: JDBC_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sonardb
+                  key: database-user
+            - name: JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sonardb
+                  key: database-password
+            - name: SONAR_JDBC_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sonardb
+                  key: database-user
+            - name: SONAR_JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sonardb
+                  key: database-password
+            - name: FORCE_AUTHENTICATION
+              value: "false"
+            - name: SONAR_AUTOCREATE_USERS
+              value: "true"
+          resources:
+            {{- toYaml .Values.sonarqube.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.sonarqube.port }}
+            initialDelaySeconds: 45
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.sonarqube.port }}
+            initialDelaySeconds: 10
+          volumeMounts:
+            - name: sonarqube-data
+              mountPath: /opt/sonarqube/data
+      volumes:
+        - name: sonarqube-data
+          persistentVolumeClaim:
+            claimName: sonarqube-data
