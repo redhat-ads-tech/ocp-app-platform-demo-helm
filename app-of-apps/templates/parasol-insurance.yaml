@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" .Values.parasolInsurance.name "namespace" .Values.argocd.namespace "syncWave" "2") }}
+spec:
+  destination:
+    namespace: {{ .Values.parasolInsurance.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: parasol-insurance
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        gitlab:
+          rootPassword: {{ .Values.gitlab.rootPassword | quote }}
+          host: {{ .Values.gitlab.host }}
+        registry:
+          host: {{ .Values.quay.host }}
+          username: {{ .Values.quay.adminUser }}
+          password: {{ .Values.quay.adminUserPassword | quote }}
+        cluster:
+          subdomain: {{ .Values.cluster.subdomain }}
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}

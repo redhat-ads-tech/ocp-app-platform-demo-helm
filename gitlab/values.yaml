@@ -74,28 +74,10 @@ gitlab:
         - id: dev2
     - name: parasol
       repo:
-        - name: parasol-store
-          url: https://github.com/redhat-pe-workshop/parasol-store.git
-          properties:
-            onlyMergeWhenPipelineSucceeds: true
-        - name: parasol-web
-          url: https://github.com/redhat-pe-workshop/parasol-web.git
-          properties:
-            onlyMergeWhenPipelineSucceeds: true
-        - name: parasol-store-api
-          url: https://github.com/redhat-pe-workshop/parasol-store-api.git
-        - name: parasol-db-manifests
-          url: https://github.com/redhat-pe-workshop/parasol-db-manifests.git
-        - name: parasol-store-manifests
-          url: https://github.com/redhat-pe-workshop/parasol-store-manifests.git
-          properties:
-            onlyMergeWhenPipelineSucceeds: true          
-        - name: parasol-web-manifests
-          url: https://github.com/redhat-pe-workshop/parasol-web-manifests.git
-        - name: parasol-store-build-manifests
-          url: https://github.com/redhat-pe-workshop/parasol-store-build-manifests.git
-        - name: all-location-parasol
-          url: https://github.com/redhat-pe-workshop/all-location-parasol.git
+        - name: parasol-insurance
+          url: https://github.com/redhat-ads-tech/parasol-insurance.git
+        - name: parasol-insurance-manifests
+          url: https://github.com/redhat-ads-tech/parasol-insurance-manifests.git
       users:
         - id: dev1
         - id: dev2

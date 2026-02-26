@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: parasol-insurance-manifests
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  backoffLimit: 100
+  template:
+    spec:
+      serviceAccountName: {{ include "parasol-insurance.name" . }}
+      containers:
+        - name: parasol-insurance-manifests
+          command:
+            - /bin/bash
+            - '-c'
+            - |
+              set -x
+              ansible-playbook -i localhost /scripts/playbook.yaml
+          image: quay.io/agnosticd/ee-multicloud:latest
+          volumeMounts:
+            - mountPath: /scripts
+              name: scripts
+      restartPolicy: Never
+      volumes:
+        - name: scripts
+          configMap:
+            name: parasol-insurance-manifests

@@ -1,0 +1,143 @@
+kind: ConfigMap
+metadata:
+  name: parasol-insurance-manifests
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+apiVersion: v1
+data:
+  playbook.yaml: |
+    ---
+    - name: Parasol Insurance manifests bootstrap
+      hosts: localhost
+      tasks:
+        - name: Check existence of group
+          ansible.builtin.uri:
+            url: https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/api/v4/groups/parasol
+            method: GET
+            validate_certs: false
+          register: r_liveness
+          retries: 120
+          delay: 10
+          until: r_liveness.status == 200
+
+        - name: Git config email
+          ansible.builtin.command: git config --global user.email "{{ $.Values.gitlab.email.address }}"
+          ignore_errors: true
+
+        - name: Git config name
+          ansible.builtin.command: git config --global user.name "{{ $.Values.gitlab.email.displayName }}"
+          ignore_errors: true
+
+        - name: Build git repo url
+          ansible.builtin.set_fact:
+            _git_manifests_repo_url: https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/parasol/parasol-insurance-manifests
+
+        - name: Remove older repo folder
+          shell: rm -rf /tmp/parasol-insurance-manifests
+
+        - name: Check existence of manifests repo
+          ansible.builtin.uri:
+            url: '{{ "{{" }} _git_manifests_repo_url {{ "}}" }}'
+            method: GET
+            validate_certs: false
+          register: r_repo
+          retries: 60
+          delay: 10
+          until: r_repo.status == 200
+
+        - name: Clone parasol-insurance-manifests
+          ansible.builtin.git:
+            accept_hostkey: true
+            force: true
+            repo: '{{ "{{" }} _git_manifests_repo_url {{ "}}" }}'
+            dest: /tmp/parasol-insurance-manifests
+            version: main
+          environment:
+            GIT_SSL_NO_VERIFY: "true"
+          register: r_git_clone
+          retries: 60
+          delay: 10
+          until: r_git_clone is not failed
+
+        # Template the build ArgoCD app
+        - name: Fetch build/argocd/app.yaml template
+          run_once: true
+          ansible.builtin.fetch:
+            src: /tmp/parasol-insurance-manifests/build/argocd/app.yaml
+            dest: /tmp/build-argocd-app.yaml
+            flat: true
+            fail_on_missing: true
+
+        - name: Apply template build/argocd/app.yaml
+          ansible.builtin.template:
+            src: /tmp/build-argocd-app.yaml
+            dest: /tmp/parasol-insurance-manifests/build/argocd/app.yaml
+            mode: "0660"
+          vars:
+            parasol_insurance_argocd_namespace: "{{ $.Values.argocd.namespace }}"
+            parasol_insurance_build_namespace: "{{ $.Values.build.namespace }}"
+            parasol_insurance_gitlab_host: "{{ $.Values.gitlab.host }}"
+            parasol_insurance_registry_host: "{{ $.Values.registry.host }}"
+
+{{- range $env := .Values.environments }}
+
+        # Template the app ArgoCD app for {{ $env.name }}
+        - name: Fetch app/argocd/app.yaml template for {{ $env.name }}
+          run_once: true
+          ansible.builtin.fetch:
+            src: /tmp/parasol-insurance-manifests/app/argocd/app.yaml
+            dest: /tmp/app-argocd-app-{{ $env.name }}.yaml
+            flat: true
+            fail_on_missing: true
+
+        - name: Apply template app/argocd/app.yaml for {{ $env.name }}
+          ansible.builtin.template:
+            src: /tmp/app-argocd-app-{{ $env.name }}.yaml
+            dest: /tmp/parasol-insurance-manifests/app/argocd/app-{{ $env.name }}.yaml
+            mode: "0660"
+          vars:
+            parasol_insurance_argocd_namespace: "{{ $.Values.argocd.namespace }}"
+            parasol_insurance_namespace: "{{ $env.namespace }}"
+            parasol_insurance_environment: "{{ $env.name }}"
+            parasol_insurance_gitlab_host: "{{ $.Values.gitlab.host }}"
+            parasol_insurance_registry_host: "{{ $.Values.registry.host }}"
+            parasol_insurance_cluster_subdomain: "{{ $.Values.cluster.subdomain }}"
+{{- end }}
+
+        # Remove the original app template (it's been expanded per-environment)
+        - name: Remove original app/argocd/app.yaml template
+          ansible.builtin.file:
+            path: /tmp/parasol-insurance-manifests/app/argocd/app.yaml
+            state: absent
+
+        - name: Add new files to the repository
+          ansible.builtin.command:
+            chdir: /tmp/parasol-insurance-manifests
+            cmd: "git add ."
+          ignore_errors: true
+
+        - name: Commit changes to the repository
+          ansible.builtin.command:
+            chdir: /tmp/parasol-insurance-manifests
+            cmd: "git commit -a -m 'parasol-insurance init: bootstrap with cluster values'"
+          ignore_errors: true
+
+        - name: Push all changes back to the project repository
+          ansible.builtin.command:
+            chdir: /tmp/parasol-insurance-manifests
+            cmd: >-
+              git push {{ "{{" }} _git_manifests_repo_url {{ "}}" }}
+
+        # Deploy ArgoCD Applications
+        - name: Deploy build application
+          kubernetes.core.k8s:
+            state: present
+            definition: "{{ "{{" }} lookup('file', '/tmp/parasol-insurance-manifests/build/argocd/app.yaml') | from_yaml {{ "}}" }}"
+
+{{- range $env := .Values.environments }}
+
+        - name: Deploy {{ $env.name }} application
+          kubernetes.core.k8s:
+            state: present
+            definition: "{{ "{{" }} lookup('file', '/tmp/parasol-insurance-manifests/app/argocd/app-{{ $env.name }}.yaml') | from_yaml {{ "}}" }}"
+{{- end }}

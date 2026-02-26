@@ -191,9 +191,9 @@ amqStreams:
   name: amq-streams
   namespace: kafka
 
-parasol:
-  name: parasol
-  namespace: parasol-dev
+parasolInsurance:
+  name: parasol-insurance
+  namespace: parasol-insurance-dev
 
 sonarqube:
   name: sonarqube
