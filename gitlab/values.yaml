@@ -42,7 +42,7 @@ gitlab:
           url: https://github.com/redhat-pe-workshop/parasol-store-dev-template-secured.git
           defaultBranch: dev
         - name: developer-hub-config
-          url: https://github.com/redhat-ads-tech/ocp-app-platform-rhdh-config.git
+          url: https://github.com/redhat-ads-tech/ocp-app-platform-demo-developer-hub-config.git
         - name: import-existing-app-template
           url: https://github.com/redhat-pe-workshop/import-existing-app-template.git
           defaultBranch: dev
