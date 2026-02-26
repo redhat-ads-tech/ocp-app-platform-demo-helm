@@ -122,7 +122,7 @@ developerHub:
     git:
       host: "github.com"
       group: redhat-ads-tech
-      repo: ocp-app-platform-rhdh-config
+      repo: ocp-app-platform-demo-developer-hub-config
       revision: main
 
 rhdhGitops:
