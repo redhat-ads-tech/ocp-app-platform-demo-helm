@@ -1,0 +1,8 @@
+nameOverride: ""
+
+subscription:
+  channel: builds-1.7
+  installPlanApproval: Automatic
+  name: openshift-builds-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

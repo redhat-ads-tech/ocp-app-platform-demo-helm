@@ -1,0 +1,5 @@
+apiVersion: v2
+name: openshift-builds
+description: A Helm chart for installing the Builds for Red Hat OpenShift Operator
+type: application
+version: 0.1.0
