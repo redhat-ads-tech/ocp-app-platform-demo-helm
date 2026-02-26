@@ -1,0 +1,8 @@
+---
+apiVersion: kiali.io/v1alpha1
+kind: OSSMConsole
+metadata:
+  name: ossmconsole
+  namespace: {{ .Values.istio.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"

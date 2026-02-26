@@ -1,0 +1,13 @@
+---
+apiVersion: sailoperator.io/v1
+kind: Istio
+metadata:
+  name: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  namespace: {{ .Values.istio.namespace }}
+  values:
+    meshConfig:
+      discoverySelectors:
+        - {{- .Values.istio.discoverySelector | toYaml | nindent 10 }}

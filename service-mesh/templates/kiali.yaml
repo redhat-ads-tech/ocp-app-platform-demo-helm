@@ -1,0 +1,24 @@
+---
+apiVersion: kiali.io/v1alpha1
+kind: Kiali
+metadata:
+  name: kiali
+  namespace: {{ .Values.istio.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  auth:
+    strategy: openshift
+  deployment:
+    cluster_wide_access: true
+    accessible_namespaces:
+      - "**"
+    namespace: {{ .Values.istio.namespace }}
+    pod_labels:
+      sidecar.istio.io/inject: "false"
+  external_services:
+    grafana:
+      enabled: false
+    tracing:
+      enabled: false
+  istio_namespace: {{ .Values.istio.namespace }}

@@ -1,0 +1,10 @@
+---
+apiVersion: sailoperator.io/v1
+kind: IstioCNI
+metadata:
+  name: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  namespace: {{ .Values.istioCni.namespace }}
+  profile: openshift
