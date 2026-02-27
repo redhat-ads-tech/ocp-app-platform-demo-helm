@@ -56,7 +56,7 @@ data:
             body:
               url: "{{ "{{" }} _el_url {{ "}}" }}"
               tag_push_events: true
-              push_events: false
+              push_events: true
               enable_ssl_verification: false
             validate_certs: false
             status_code: 201
