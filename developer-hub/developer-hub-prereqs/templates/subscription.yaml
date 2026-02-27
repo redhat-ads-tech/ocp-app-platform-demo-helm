@@ -12,7 +12,7 @@ spec:
   {{- if .Values.operator.startingCSV }}
   startingCSV: {{ .Values.operator.startingCSV }}
   {{- end }}
-  installPlanApproval: Automatic
+  installPlanApproval: Manual
   name: rhdh
   source: redhat-operators
   sourceNamespace: openshift-marketplace
