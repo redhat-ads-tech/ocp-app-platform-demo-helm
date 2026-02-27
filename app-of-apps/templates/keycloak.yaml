@@ -31,8 +31,8 @@ spec:
           client:
             backstage:
               name: {{ .Values.keycloak.client.backstage.name }}
-              redirectUri: {{ .Values.keycloak.client.backstage.redirectUri }}
-              webOrigin: {{ .Values.keycloak.client.backstage.webOrigin }}
+              redirectUri: https://backstage-developer-hub-{{ .Values.developerHub.namespace }}.{{ .Values.cluster.subdomain }}/api/auth/oidc/handler/frame
+              webOrigin: https://backstage-developer-hub-{{ .Values.developerHub.namespace }}.{{ .Values.cluster.subdomain }}
               secret: {{ .Values.keycloak.client.backstage.secret | quote }}
             backstagePlugin:
               name: {{ .Values.keycloak.client.backstagePlugin.name }}
