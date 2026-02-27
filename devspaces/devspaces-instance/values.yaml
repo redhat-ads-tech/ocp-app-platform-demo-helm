@@ -11,11 +11,11 @@ devEnvironments:
   defaultEditor: che-incubator/che-code/latest
   resources:
     limits:
-      memory: 4Gi
+      memory: 6Gi
       cpu: "4"
     requests:
       memory: 512Mi
-      cpu: 250m
+      cpu: 500m
 
 gitlab:
   host: ""
