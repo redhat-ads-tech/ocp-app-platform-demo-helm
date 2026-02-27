@@ -76,31 +76,6 @@ gitlab:
         - id: pe1
         - id: pe2
   templates:
-    - group: rhdh
-      project: template-quarkus-simple
-      branch: dev
-      templates:
-        - template.yaml
-    - group: rhdh
-      project: import-existing-app-template
-      branch: dev
-      templates:
-        - template.yaml
-    - group: rhdh
-      project: import-existing-api-template
-      branch: dev
-      templates:
-        - template.yaml
-    - group: rhdh
-      project: parasol-store-dev-template
-      branch: dev
-      templates:
-        - template.yaml
-    - group: rhdh
-      project: parasol-store-dev-template-secure
-      branch: dev
-      templates:
-        - template.yaml
     - group: parasol
       project: parasol-insurance
       branch: main
@@ -112,20 +87,6 @@ gitlab:
       templates:
         - catalog-info.yaml
         - mkdocs.yaml
-    - group: rhdh
-      project: template-developer-self-service
-      branch: main
-      templates:
-        - postgres15/template.yaml
-        - namespace/template-small.yaml
-        - namespace/template-medium.yaml
-        - namespace/template-large.yaml
-    - group: rhdh
-      project: orchestrator-workflows
-      branch: main
-      templates:
-        - manifests/greeting/application.yaml
-        - manifests/create-ocp-namespace-swt/application.yaml
 postgresql:
   dbUser: gitlab
   dbPassword: passw0rd
