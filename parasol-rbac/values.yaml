@@ -1,0 +1,12 @@
+users:
+  - dev1
+  - dev2
+  - pe1
+  - pe2
+
+namespaces:
+  - parasol-insurance-dev
+  - parasol-insurance-prod
+  - parasol-insurance-build
+
+clusterRole: admin
