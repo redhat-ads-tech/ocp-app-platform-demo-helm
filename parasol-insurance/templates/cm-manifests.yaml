@@ -141,3 +141,53 @@ data:
             state: present
             definition: "{{ "{{" }} lookup('file', '/tmp/parasol-insurance-manifests/app/argocd/app-{{ $env.name }}.yaml') | from_yaml {{ "}}" }}"
 {{- end }}
+
+        # Configure GitLab webhook for tag push events
+        - name: Wait for EventListener route
+          kubernetes.core.k8s_info:
+            api_version: route.openshift.io/v1
+            kind: Route
+            name: parasol-insurance-tag-listener
+            namespace: {{ $.Values.build.namespace }}
+          register: r_el_route
+          retries: 60
+          delay: 10
+          until: r_el_route.resources | length > 0
+
+        - name: Set EventListener URL
+          ansible.builtin.set_fact:
+            _el_url: "https://{{ "{{" }} r_el_route.resources[0].spec.host {{ "}}" }}"
+
+        - name: Get parasol-insurance project ID
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/parasol%2Fparasol-insurance"
+            method: GET
+            headers:
+              PRIVATE-TOKEN: "{{ $.Values.gitlab.rootPassword }}"
+            validate_certs: false
+          register: r_project
+
+        - name: Check existing webhooks
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
+            method: GET
+            headers:
+              PRIVATE-TOKEN: "{{ $.Values.gitlab.rootPassword }}"
+            validate_certs: false
+          register: r_hooks
+
+        - name: Create tag push webhook
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
+            method: POST
+            headers:
+              PRIVATE-TOKEN: "{{ $.Values.gitlab.rootPassword }}"
+            body_format: json
+            body:
+              url: "{{ "{{" }} _el_url {{ "}}" }}"
+              tag_push_events: true
+              push_events: false
+              enable_ssl_verification: false
+            validate_certs: false
+            status_code: 201
+          when: r_hooks.json | selectattr('url', 'equalto', _el_url) | list | length == 0
