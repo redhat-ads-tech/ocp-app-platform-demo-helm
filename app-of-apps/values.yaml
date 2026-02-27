@@ -49,10 +49,6 @@ serviceMesh:
   name: service-mesh
   namespace: openshift-operators
 
-openshiftBuilds:
-  name: openshift-builds
-  namespace: openshift-operators
-
 noobaa:
   enabled: true
   name: noobaa
