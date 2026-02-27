@@ -38,6 +38,8 @@ gitlab:
           url: https://github.com/redhat-pe-workshop/pe-workshop-entities.git
         - name: template-developer-self-service
           url: https://github.com/redhat-pe-workshop/rhdh-template-developer-self-service.git
+        - name: devfiles
+          url: https://github.com/redhat-ads-tech/devfiles.git
       users:
         - id: pe1
         - id: pe2
