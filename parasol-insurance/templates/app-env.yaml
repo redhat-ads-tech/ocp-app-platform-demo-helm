@@ -1,0 +1,36 @@
+{{- range $env := .Values.environments }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: parasol-insurance-{{ $env.name }}
+  namespace: {{ $.Values.argocd.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: {{ $env.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: app
+    repoURL: https://{{ $.Values.gitlab.host }}/parasol/parasol-insurance-manifests.git
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values/values-{{ $env.name }}.yaml
+      valuesObject:
+        registry:
+          host: {{ $.Values.registry.host }}
+        cluster:
+          subdomain: {{ $.Values.cluster.subdomain }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+{{- end }}

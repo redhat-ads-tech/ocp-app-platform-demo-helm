@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: parasol-insurance-manifests
+  name: parasol-insurance-webhook
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
@@ -10,7 +10,7 @@ spec:
     spec:
       serviceAccountName: {{ include "parasol-insurance.name" . }}
       containers:
-        - name: parasol-insurance-manifests
+        - name: parasol-insurance-webhook
           command:
             - /bin/bash
             - '-c'
@@ -25,4 +25,4 @@ spec:
       volumes:
         - name: scripts
           configMap:
-            name: parasol-insurance-manifests
+            name: parasol-insurance-webhook
