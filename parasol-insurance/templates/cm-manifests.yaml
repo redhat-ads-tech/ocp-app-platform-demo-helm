@@ -29,9 +29,8 @@ data:
           ansible.builtin.uri:
             url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/parasol%2Fparasol-insurance"
             method: GET
-            url_username: root
-            url_password: "{{ $.Values.gitlab.rootPassword }}"
-            force_basic_auth: true
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
             validate_certs: false
           register: r_project
           retries: 30
@@ -42,9 +41,8 @@ data:
           ansible.builtin.uri:
             url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
             method: GET
-            url_username: root
-            url_password: "{{ $.Values.gitlab.rootPassword }}"
-            force_basic_auth: true
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
             validate_certs: false
           register: r_hooks
 
@@ -52,9 +50,8 @@ data:
           ansible.builtin.uri:
             url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
             method: POST
-            url_username: root
-            url_password: "{{ $.Values.gitlab.rootPassword }}"
-            force_basic_auth: true
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
             body_format: json
             body:
               url: "{{ "{{" }} _el_url {{ "}}" }}"

@@ -18,6 +18,12 @@ spec:
               set -x
               ansible-playbook -i localhost /scripts/playbook.yaml
           image: quay.io/agnosticd/ee-multicloud:latest
+          env:
+            - name: GITLAB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-token
+                  key: token
           volumeMounts:
             - mountPath: /scripts
               name: scripts
