@@ -8,6 +8,7 @@ vault:
 
 operator:
   channel: fast-1.8
+  startingCSV: rhdh.v1.8.3
 
 argocd:
   enabled: true
