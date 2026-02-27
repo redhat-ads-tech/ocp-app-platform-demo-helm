@@ -10,14 +10,4 @@ spec:
     path: service-mesh
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-  syncPolicy:
-    automated: {}
-    retry:
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m0s
-      limit: 2
-    syncOptions:
-      - CreateNamespace=false
-      - RespectIgnoreDifferences=true
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}
