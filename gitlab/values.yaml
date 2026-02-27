@@ -101,6 +101,11 @@ gitlab:
       branch: dev
       templates:
         - template.yaml
+    - group: parasol
+      project: parasol-insurance
+      branch: main
+      templates:
+        - devfile.yaml
     - group: global
       project: global-techdocs
       branch: main
