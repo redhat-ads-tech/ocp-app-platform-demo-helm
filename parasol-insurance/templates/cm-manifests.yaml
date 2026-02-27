@@ -27,8 +27,11 @@ data:
 
         - name: Get parasol-insurance project ID
           ansible.builtin.uri:
-            url: "https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/api/v4/projects/parasol%2Fparasol-insurance"
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/parasol%2Fparasol-insurance"
             method: GET
+            url_username: root
+            url_password: "{{ $.Values.gitlab.rootPassword }}"
+            force_basic_auth: true
             validate_certs: false
           register: r_project
           retries: 30
@@ -37,15 +40,21 @@ data:
 
         - name: Check existing webhooks
           ansible.builtin.uri:
-            url: "https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
             method: GET
+            url_username: root
+            url_password: "{{ $.Values.gitlab.rootPassword }}"
+            force_basic_auth: true
             validate_certs: false
           register: r_hooks
 
         - name: Create tag push webhook
           ansible.builtin.uri:
-            url: "https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
             method: POST
+            url_username: root
+            url_password: "{{ $.Values.gitlab.rootPassword }}"
+            force_basic_auth: true
             body_format: json
             body:
               url: "{{ "{{" }} _el_url {{ "}}" }}"
