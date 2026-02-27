@@ -5,7 +5,8 @@ namespace: ""
 
 devEnvironments:
   startTimeoutSeconds: 300
-  secondsOfRunBeforeIdling: 600
+  secondsOfRunBeforeIdling: -1
+  secondsOfInactivityBeforeIdling: -1
   maxNumberOfWorkspacesPerUser: 2
   defaultEditor: che-incubator/che-code/latest
   resources:

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: parasol-rbac
+description: RBAC for Keycloak users in Parasol Insurance namespaces
+type: application
+version: 0.1.0

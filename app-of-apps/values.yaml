@@ -187,6 +187,10 @@ amqStreams:
   name: amq-streams
   namespace: kafka
 
+parasolRbac:
+  name: parasol-rbac
+  namespace: parasol-insurance-dev
+
 parasolInsurance:
   name: parasol-insurance
   namespace: parasol-insurance-dev
