@@ -46,7 +46,11 @@ data:
             validate_certs: false
           register: r_hooks
 
-        - name: Create tag push webhook
+        - name: Set existing webhook match
+          ansible.builtin.set_fact:
+            _existing_hooks: "{{ "{{" }} r_hooks.json | selectattr('url', 'equalto', _el_url) | list {{ "}}" }}"
+
+        - name: Create webhook
           ansible.builtin.uri:
             url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
             method: POST
@@ -61,4 +65,20 @@ data:
               enable_ssl_verification: false
             validate_certs: false
             status_code: 201
-          when: r_hooks.json | selectattr('url', 'equalto', _el_url) | list | length == 0
+          when: _existing_hooks | length == 0
+
+        - name: Update existing webhook
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks/{{ "{{" }} _existing_hooks[0].id {{ "}}" }}"
+            method: PUT
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+            body_format: json
+            body:
+              url: "{{ "{{" }} _el_url {{ "}}" }}"
+              token: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+              tag_push_events: true
+              push_events: true
+              enable_ssl_verification: false
+            validate_certs: false
+          when: _existing_hooks | length > 0
