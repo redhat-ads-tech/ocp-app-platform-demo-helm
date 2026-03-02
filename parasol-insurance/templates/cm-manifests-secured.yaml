@@ -1,0 +1,109 @@
+kind: ConfigMap
+metadata:
+  name: parasol-insurance-secured-webhook
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+apiVersion: v1
+data:
+  playbook.yaml: |
+    ---
+    - name: Parasol Insurance Secured webhook setup
+      hosts: localhost
+      tasks:
+        - name: Generate webhook secret
+          ansible.builtin.set_fact:
+            _webhook_secret: "{{ "{{" }} lookup('password', '/dev/null chars=ascii_lowercase,digits length=12') {{ "}}" }}"
+
+        - name: Retrieve Vault Pod
+          kubernetes.core.k8s_info:
+            kind: Pod
+            name: {{ $.Values.vault.name }}-0
+            namespace: {{ $.Values.vault.namespace }}
+          register: r_vault
+          retries: 120
+          delay: 5
+          until:
+            - r_vault.resources is defined
+            - r_vault.resources | length > 0
+            - r_vault.resources[0].status is defined
+            - r_vault.resources[0].status.phase is defined
+            - r_vault.resources[0].status.phase == 'Running'
+
+        - name: Store webhook secret in Vault
+          kubernetes.core.k8s_exec:
+            namespace: {{ $.Values.vault.namespace }}
+            pod: {{ $.Values.vault.name }}-0
+            command: 'vault kv put kv/secrets/parasol-insurance-secured/webhook-secret value={{ "{{" }} _webhook_secret {{ "}}" }}'
+
+        - name: Wait for EventListener route
+          kubernetes.core.k8s_info:
+            api_version: route.openshift.io/v1
+            kind: Route
+            name: parasol-insurance-secured-listener
+            namespace: {{ $.Values.securedBuild.namespace }}
+          register: r_el_route
+          retries: 60
+          delay: 10
+          until: r_el_route.resources | length > 0
+
+        - name: Set EventListener URL
+          ansible.builtin.set_fact:
+            _el_url: "https://{{ "{{" }} r_el_route.resources[0].spec.host {{ "}}" }}"
+
+        - name: Get parasol-insurance project ID
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/parasol%2Fparasol-insurance"
+            method: GET
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+            validate_certs: false
+          register: r_project
+          retries: 30
+          delay: 10
+          until: r_project.status == 200
+
+        - name: Check existing webhooks
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
+            method: GET
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+            validate_certs: false
+          register: r_hooks
+
+        - name: Set existing webhook match
+          ansible.builtin.set_fact:
+            _existing_hooks: "{{ "{{" }} r_hooks.json | selectattr('url', 'equalto', _el_url) | list {{ "}}" }}"
+
+        - name: Create webhook
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks"
+            method: POST
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+            body_format: json
+            body:
+              url: "{{ "{{" }} _el_url {{ "}}" }}"
+              token: "{{ "{{" }} _webhook_secret {{ "}}" }}"
+              tag_push_events: true
+              push_events: true
+              enable_ssl_verification: false
+            validate_certs: false
+            status_code: 201
+          when: _existing_hooks | length == 0
+
+        - name: Update existing webhook
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks/{{ "{{" }} _existing_hooks[0].id {{ "}}" }}"
+            method: PUT
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+            body_format: json
+            body:
+              url: "{{ "{{" }} _el_url {{ "}}" }}"
+              token: "{{ "{{" }} _webhook_secret {{ "}}" }}"
+              tag_push_events: true
+              push_events: true
+              enable_ssl_verification: false
+            validate_certs: false
+          when: _existing_hooks | length > 0

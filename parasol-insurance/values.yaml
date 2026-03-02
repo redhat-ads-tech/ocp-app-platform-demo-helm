@@ -28,6 +28,17 @@ environments:
 build:
   namespace: parasol-insurance-build
 
+securedEnvironments:
+  - name: dev
+    namespace: parasol-insurance-secured-dev
+    branch: main
+  - name: prod
+    namespace: parasol-insurance-secured-prod
+    branch: main
+
+securedBuild:
+  namespace: parasol-insurance-secured-build
+
 vault:
   name: vault
   namespace: vault

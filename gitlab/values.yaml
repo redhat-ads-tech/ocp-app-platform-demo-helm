@@ -40,6 +40,8 @@ gitlab:
           url: https://github.com/redhat-pe-workshop/rhdh-template-developer-self-service.git
         - name: devfiles
           url: https://github.com/redhat-ads-tech/devfiles.git
+        - name: rhdh-templates
+          url: https://github.com/redhat-ads-tech/ocp-app-platform-demo-rhdh-templates.git
       users:
         - id: pe1
         - id: pe2
@@ -61,6 +63,8 @@ gitlab:
           url: https://github.com/redhat-ads-tech/parasol-insurance.git
         - name: parasol-insurance-manifests
           url: https://github.com/redhat-ads-tech/parasol-insurance-manifests.git
+        - name: parasol-insurance-secured-manifests
+          url: https://github.com/redhat-ads-tech/parasol-insurance-secured-manifests.git
       users:
         - id: dev1
         - id: dev2

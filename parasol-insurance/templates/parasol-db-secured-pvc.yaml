@@ -1,0 +1,18 @@
+{{- if $.Values.database.persistence.enabled }}
+{{- range $env := .Values.securedEnvironments }}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: parasol-db
+  namespace: {{ $env.namespace }}
+  labels:
+    app: parasol-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $.Values.database.persistence.capacity }}
+{{- end }}
+{{- end }}

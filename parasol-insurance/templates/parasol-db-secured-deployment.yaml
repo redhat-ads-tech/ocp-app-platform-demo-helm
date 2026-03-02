@@ -1,0 +1,84 @@
+{{- range $env := .Values.securedEnvironments }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parasol-db
+  namespace: {{ $env.namespace }}
+  labels:
+    app: parasol-db
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parasol-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: parasol-db
+        sidecar.istio.io/inject: "true"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: parasol-db
+          image: {{ $.Values.database.image }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: parasol-db
+                  key: database-user
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: parasol-db
+                  key: database-password
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: parasol-db
+                  key: database-name
+          resources:
+            {{- toYaml $.Values.database.resources | nindent 12 }}
+          livenessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            tcpSocket:
+              port: 5432
+          readinessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -i
+                - -c
+                - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
+          {{- if $.Values.database.persistence.enabled }}
+          volumeMounts:
+            - name: parasol-db-data
+              mountPath: /var/lib/pgsql/data
+          {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      {{- if $.Values.database.persistence.enabled }}
+      volumes:
+        - name: parasol-db-data
+          persistentVolumeClaim:
+            claimName: parasol-db
+      {{- end }}
+{{- end }}
