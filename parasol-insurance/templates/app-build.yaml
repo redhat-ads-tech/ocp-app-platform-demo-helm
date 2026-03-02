@@ -23,6 +23,8 @@ spec:
           host: {{ .Values.gitlab.host }}
         registry:
           host: {{ .Values.registry.host }}
+        sonarqube:
+          host: "http://sonarqube.sonarqube.svc:9000"
   syncPolicy:
     automated:
       prune: true

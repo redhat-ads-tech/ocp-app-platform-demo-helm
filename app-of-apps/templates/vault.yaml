@@ -41,6 +41,8 @@ spec:
           litellm:
             apiUrl: {{ .Values.vault.secrets.litellm.apiUrl | quote }}
             apiKey: {{ .Values.vault.secrets.litellm.apiKey | quote }}
+          sonarqube:
+            adminPassword: {{ .Values.vault.secrets.sonarqube.adminPassword | quote }}
           kafka:
             userPassword: {{ .Values.vault.secrets.kafka.userPassword | quote }}
   syncPolicy:

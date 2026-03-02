@@ -34,6 +34,8 @@ vault:
     litellm:
       apiUrl: ""
       apiKey: ""
+    sonarqube:
+      adminPassword: ""
     kafka:
       userPassword: ""
 
