@@ -12,6 +12,7 @@ secrets:
     rootPassword: ""
   keycloak:
     clientId: backstage
+    pluginClientId: backstage-plugin
     clientSecret: ""
     pluginClientSecret: ""
     openshiftClientSecret: ""

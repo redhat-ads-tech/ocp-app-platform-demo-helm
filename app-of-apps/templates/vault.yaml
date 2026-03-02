@@ -28,6 +28,7 @@ spec:
             rootPassword: {{ .Values.vault.secrets.gitlab.rootPassword | quote }}
           keycloak:
             clientId: {{ .Values.vault.secrets.keycloak.clientId }}
+            pluginClientId: {{ .Values.vault.secrets.keycloak.pluginClientId }}
             clientSecret: {{ .Values.vault.secrets.keycloak.clientSecret | quote }}
             pluginClientSecret: {{ .Values.vault.secrets.keycloak.pluginClientSecret | quote }}
             openshiftClientSecret: {{ .Values.vault.secrets.keycloak.openshiftClientSecret | quote }}
