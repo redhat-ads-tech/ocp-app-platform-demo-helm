@@ -90,6 +90,11 @@ gitlab:
       branch: main
       templates:
         - catalog-info.yaml
+    - group: rhdh
+      project: rhdh-templates
+      branch: main
+      templates:
+        - templates/parasol-insurance-secured/template.yaml
         - mkdocs.yaml
 postgresql:
   dbUser: gitlab
