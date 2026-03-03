@@ -128,6 +128,19 @@ data:
           ansible.builtin.set_fact:
             _hook_id: "{{ "{{" }} (_existing_hooks | length > 0) | ternary(_existing_hooks[0].id, r_new_hook.json.id | default('')) {{ "}}" }}"
 
+        - name: Get HEAD commit SHA
+          ansible.builtin.uri:
+            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/repository/branches/main"
+            method: GET
+            headers:
+              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+            validate_certs: false
+          register: r_main_branch
+
+        - name: Set HEAD SHA
+          ansible.builtin.set_fact:
+            _head_sha: "{{ "{{" }} r_main_branch.json.commit.id {{ "}}" }}"
+
         - name: Create 1.0 tag for initial prod release
           ansible.builtin.uri:
             url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/repository/tags"
@@ -148,28 +161,38 @@ data:
             - r_tag.status == 400
             - "'already exists' not in (r_tag.json | default({}) | string)"
 
-        - name: Trigger initial dev build
+        - name: Trigger initial dev build (push to EL)
           ansible.builtin.uri:
-            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks/{{ "{{" }} _hook_id {{ "}}" }}/test/push_events"
+            url: "{{ "{{" }} _el_url {{ "}}" }}"
             method: POST
             headers:
-              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+              Content-Type: application/json
+              X-Gitlab-Event: Push Hook
+              X-Gitlab-Token: "{{ "{{" }} _webhook_secret {{ "}}" }}"
+            body_format: json
+            body:
+              ref: "refs/heads/main"
+              checkout_sha: "{{ "{{" }} _head_sha {{ "}}" }}"
             validate_certs: false
             status_code:
-              - 200
               - 201
-          when: _hook_id | length > 0
+              - 202
           ignore_errors: true
 
-        - name: Trigger initial prod build via tag push
+        - name: Trigger initial prod build (tag push to EL)
           ansible.builtin.uri:
-            url: "https://{{ $.Values.gitlab.host }}/api/v4/projects/{{ "{{" }} r_project.json.id {{ "}}" }}/hooks/{{ "{{" }} _hook_id {{ "}}" }}/test/tag_push_events"
+            url: "{{ "{{" }} _el_url {{ "}}" }}"
             method: POST
             headers:
-              PRIVATE-TOKEN: "{{ "{{" }} lookup('env', 'GITLAB_TOKEN') {{ "}}" }}"
+              Content-Type: application/json
+              X-Gitlab-Event: Tag Push Hook
+              X-Gitlab-Token: "{{ "{{" }} _webhook_secret {{ "}}" }}"
+            body_format: json
+            body:
+              ref: "1.0"
+              checkout_sha: "{{ "{{" }} _head_sha {{ "}}" }}"
             validate_certs: false
             status_code:
-              - 200
               - 201
-          when: _hook_id | length > 0
+              - 202
           ignore_errors: true
