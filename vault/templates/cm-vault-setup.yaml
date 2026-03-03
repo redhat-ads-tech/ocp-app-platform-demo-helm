@@ -122,6 +122,7 @@ data:
             - 'vault kv put kv/secrets/rhdh/postgresql-password value={{ $.Values.secrets.rhdh.postgresqlPassword }}'
             - 'vault kv put kv/secrets/rhdh/orchestrator-token value={{ $.Values.secrets.orchestrator.token }}'
             - 'vault kv put kv/secrets/common/password value={{ $.Values.secrets.common.password }}'
+            - 'vault kv put kv/secrets/rhdh/backend-secret value={{ "{{" }} lookup("ansible.builtin.password", "/dev/null", chars=["ascii_letters", "digits"], length=32) {{ "}}" }}'
 {{- if $.Values.secrets.kafka.userPassword }}
             - 'vault kv put kv/secrets/kafka/user-password value={{ $.Values.secrets.kafka.userPassword }}'
 {{- end }}

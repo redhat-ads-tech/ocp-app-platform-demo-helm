@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tpa-prerequisites.name" . }}
+  labels:
+    {{- include "tpa-prerequisites.labels" . | nindent 4 }}
+  annotations:
+    {{- include "tpa-prerequisites.argocd-syncwave" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: {{ .Values.service.portName }}
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.containerPort }}
+  selector:
+    {{- include "tpa-prerequisites.selectorLabels" . | nindent 4 }}

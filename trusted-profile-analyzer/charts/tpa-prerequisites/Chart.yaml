@@ -1,0 +1,5 @@
+apiVersion: v2
+name: tpa-prerequisites
+description: Prerequisites for Trusted Profile Analyzer (PostgreSQL, S3, OIDC secret)
+type: application
+version: 0.1.0

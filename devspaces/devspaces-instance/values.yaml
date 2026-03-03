@@ -5,16 +5,17 @@ namespace: ""
 
 devEnvironments:
   startTimeoutSeconds: 300
-  secondsOfRunBeforeIdling: 600
+  secondsOfRunBeforeIdling: -1
+  secondsOfInactivityBeforeIdling: -1
   maxNumberOfWorkspacesPerUser: 2
   defaultEditor: che-incubator/che-code/latest
   resources:
     limits:
-      memory: 2Gi
-      cpu: "2"
+      memory: 6Gi
+      cpu: "4"
     requests:
       memory: 512Mi
-      cpu: 250m
+      cpu: 500m
 
 gitlab:
   host: ""

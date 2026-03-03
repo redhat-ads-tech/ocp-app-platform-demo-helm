@@ -1,0 +1,29 @@
+gitlab:
+  rootPassword: ""
+  host: ""
+  email:
+    address: "gitlab@rhdemo.com"
+    displayName: "GitLab"
+
+registry:
+  host: ""
+  organization: parasol
+  username: ""
+  password: ""
+
+cluster:
+  subdomain: ""
+
+argocd:
+  namespace: rhdh-gitops
+
+environments:
+  - name: dev
+    namespace: parasol-insurance-dev
+    branch: main
+  - name: prod
+    namespace: parasol-insurance-prod
+    branch: main
+
+build:
+  namespace: parasol-insurance-build

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: parasol-insurance
+description: Bootstrap chart for Parasol Insurance (imports repos, creates ArgoCD apps)
+type: application
+version: 0.1.0

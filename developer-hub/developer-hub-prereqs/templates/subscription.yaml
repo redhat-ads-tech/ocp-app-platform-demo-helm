@@ -9,7 +9,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   channel: {{ .Values.operator.channel }}
-  installPlanApproval: Automatic
+  {{- if .Values.operator.startingCSV }}
+  startingCSV: {{ .Values.operator.startingCSV }}
+  {{- end }}
+  installPlanApproval: Manual
   name: rhdh
   source: redhat-operators
   sourceNamespace: openshift-marketplace

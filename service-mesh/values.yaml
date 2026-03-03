@@ -13,3 +13,12 @@ kiali:
   name: kiali-ossm
   source: redhat-operators
   sourceNamespace: openshift-marketplace
+
+istio:
+  namespace: istio-system
+  discoverySelector:
+    matchLabels:
+      istio-discovery: enabled
+
+istioCni:
+  namespace: istio-cni

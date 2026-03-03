@@ -110,6 +110,17 @@ OpenShift client secret
 {{- end }}
 
 {{/*
+TPA CLI client secret
+*/}}
+{{- define "keycloak-realmimport.client-tpa-cli-secret" -}}
+{{- if .Values.client.tpaCli.secret }}
+{{- .Values.client.tpaCli.secret }}
+{{- else }}
+{{- randAlphaNum 32 }}
+{{- end }}
+{{- end }}
+
+{{/*
 User password
 */}}
 {{- define "keycloak.user.password" -}}

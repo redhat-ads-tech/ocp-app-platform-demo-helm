@@ -1,0 +1,102 @@
+{{- $dollar := "$" -}}
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: parasol-insurance-claimymcclaimface
+  namespace: openshift
+  annotations:
+    openshift.io/display-name: "Parasol Insurance ClaimyMcClaimFace"
+    openshift.io/provider-display-name: "Parasol Insurance Corp."
+    openshift.io/documentation-url: "https://parasol-insurance.example.com/docs"
+    openshift.io/support-url: "https://parasol-insurance.example.com/support"
+    description: >-
+      Deploy ClaimyMcClaimFace — the claims processing microservice that puts
+      the "fun" in "deductible." Built on Quarkus for blazing-fast denial
+      letters. Now with 50% more umbrella emojis in the logs.
+    iconClass: icon-java
+    tags: "parasol,insurance,claims,quarkus,java,microservice,umbrella,rainy-day-fund"
+    openshift.io/long-description: >-
+      ClaimyMcClaimFace is Parasol Insurance's flagship claims processing
+      engine. It leverages cutting-edge umbrella-oriented architecture (UOA)
+      to ensure every policyholder's rainy day is met with a warm, dry
+      response — eventually. Features include: real-time claim status updates
+      ("still processing"), automated excuse generation, and a sophisticated
+      AI model trained exclusively on fortune cookies. Powered by Quarkus
+      because even insurance software deserves to start up in under a second.
+  labels:
+    app.kubernetes.io/part-of: parasol-insurance
+    template: parasol-insurance-claimymcclaimface
+message: |-
+  ClaimyMcClaimFace has been deployed. Your claim is very important to us.
+  Current estimated processing time: somewhere between now and the heat death of the universe.
+
+  Service: {{ $dollar }}{{ "{{" }}NAME{{ "}}" }}
+  Namespace: {{ $dollar }}{{ "{{" }}NAMESPACE{{ "}}" }}
+objects:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: {{ $dollar }}{NAME}
+      labels:
+        app: {{ $dollar }}{NAME}
+        app.kubernetes.io/part-of: parasol-insurance
+    spec:
+      ports:
+        - name: http
+          port: 8080
+          targetPort: 8080
+      selector:
+        app: {{ $dollar }}{NAME}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: {{ $dollar }}{NAME}
+      labels:
+        app: {{ $dollar }}{NAME}
+        app.kubernetes.io/part-of: parasol-insurance
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: {{ $dollar }}{NAME}
+      template:
+        metadata:
+          labels:
+            app: {{ $dollar }}{NAME}
+        spec:
+          containers:
+            - name: claimymcclaimface
+              image: {{ $dollar }}{IMAGE}
+              ports:
+                - containerPort: 8080
+              resources:
+                limits:
+                  memory: {{ $dollar }}{MEMORY_LIMIT}
+                  cpu: {{ $dollar }}{CPU_LIMIT}
+                requests:
+                  memory: 128Mi
+                  cpu: 100m
+parameters:
+  - name: NAME
+    displayName: Application Name
+    description: The name for the ClaimyMcClaimFace deployment.
+    value: claimymcclaimface
+    required: true
+  - name: NAMESPACE
+    displayName: Namespace
+    description: The namespace to deploy into.
+    value: parasol-insurance-dev
+    required: true
+  - name: IMAGE
+    displayName: Container Image
+    description: The container image for ClaimyMcClaimFace.
+    value: registry.access.redhat.com/ubi9/openjdk-21:latest
+    required: true
+  - name: MEMORY_LIMIT
+    displayName: Memory Limit
+    description: Maximum memory for the container.
+    value: 512Mi
+  - name: CPU_LIMIT
+    displayName: CPU Limit
+    description: Maximum CPU for the container.
+    value: "500m"
