@@ -25,12 +25,23 @@ spec:
                 exit 0
               fi
 
-              # Read the default ingress certificate
-              TLS_CRT=$(oc get secret router-certs-default -n openshift-ingress -o jsonpath='{.data.tls\.crt}')
-              TLS_KEY=$(oc get secret router-certs-default -n openshift-ingress -o jsonpath='{.data.tls\.key}')
+              # Discover the cert secret name from the router-default deployment
+              SECRET_NAME=$(oc get deployment router-default -n openshift-ingress \
+                -o jsonpath='{.spec.template.spec.volumes[?(@.name=="default-certificate")].secret.secretName}')
+
+              if [ -z "$SECRET_NAME" ]; then
+                echo "ERROR: Could not determine default certificate secret from router-default deployment"
+                exit 1
+              fi
+
+              echo "Found ingress certificate secret: ${SECRET_NAME}"
+
+              # Read the certificate from the discovered secret
+              TLS_CRT=$(oc get secret "${SECRET_NAME}" -n openshift-ingress -o jsonpath='{.data.tls\.crt}')
+              TLS_KEY=$(oc get secret "${SECRET_NAME}" -n openshift-ingress -o jsonpath='{.data.tls\.key}')
 
               if [ -z "$TLS_CRT" ] || [ -z "$TLS_KEY" ]; then
-                echo "ERROR: Could not read router-certs-default from openshift-ingress"
+                echo "ERROR: Could not read certificate data from secret ${SECRET_NAME} in openshift-ingress"
                 exit 1
               fi
 

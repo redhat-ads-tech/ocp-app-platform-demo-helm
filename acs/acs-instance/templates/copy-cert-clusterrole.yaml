@@ -6,10 +6,13 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get"]
+    resourceNames: ["router-default"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list"]
-    resourceNames: ["router-certs-default"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["create", "get", "update", "patch"]
