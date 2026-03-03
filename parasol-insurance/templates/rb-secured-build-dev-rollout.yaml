@@ -1,0 +1,16 @@
+{{- range $env := .Values.securedEnvironments }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: parasol-insurance-secured-build-rollout
+  namespace: {{ $env.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: parasol-insurance-secured-build
+    namespace: {{ $.Values.securedBuild.namespace }}
+{{- end }}
