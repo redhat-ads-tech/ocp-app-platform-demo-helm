@@ -1,6 +1,6 @@
 gitops:
-  repoURL: https://github.com/markusjnagel/ocp-app-platform-demo-helm.git
-  targetRevision: feat-tpa-install
+  repoURL: https://github.com/evanshortiss/etx-app-platform-helm.git
+  targetRevision: main
 
 argocd:
   namespace: openshift-gitops
@@ -93,9 +93,6 @@ keycloak:
       name: openshift
       redirectUri: ""
       secret: ""
-    tpaCli:
-      name: tpa-cli
-      secret: ""
   users:
     password: ""
 
@@ -121,15 +118,11 @@ developerHub:
       host: ""
     kubernetes:
       apiUrl: ""
-    keycloak:
-      host: ""
-      realm: backstage
-      loginRealm: backstage
   application:
     git:
       host: "github.com"
       group: redhat-ads-tech
-      repo: ocp-app-platform-demo-developer-hub-config
+      repo: ocp-app-platform-rhdh-config
       revision: main
 
 rhdhGitops:
@@ -167,19 +160,6 @@ rhdh:
         git:
           host: ""
 
-tpa:
-  enabled: true
-  name: trusted-profile-analyzer
-  namespace: trusted-profile-analyzer
-  appDomain: ""
-  oidcIssuer: ""
-  postgresql:
-    user: trustify
-    database: trustify
-    password: trustify
-  s3:
-    region: ""
-
 rhtas:
   name: trusted-artifact-signer
   namespace: trusted-artifact-signer
@@ -203,13 +183,9 @@ amqStreams:
   name: amq-streams
   namespace: kafka
 
-parasolRbac:
-  name: parasol-rbac
-  namespace: parasol-insurance-dev
-
-parasolInsurance:
-  name: parasol-insurance
-  namespace: parasol-insurance-dev
+parasol:
+  name: parasol
+  namespace: parasol-dev
 
 sonarqube:
   name: sonarqube

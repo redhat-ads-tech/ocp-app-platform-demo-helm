@@ -1,0 +1,21 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: backstage-orchestrator-token
+  labels:
+    {{- include "redhat-developer-hub-prereqs.labels" . | nindent 4 }}
+  annotations:
+    {{- include "redhat-developer-hub-prereqs.argocd-syncwave" . | nindent 4 }}
+spec:
+  refreshInterval: 5m
+  secretStoreRef:
+    name: vault-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: backstage-orchestrator-token
+    creationPolicy: Owner
+  data:
+    - secretKey: ORCHESTRATOR_TOKEN
+      remoteRef:
+        key: secrets/rhdh/orchestrator-token
+        property: value

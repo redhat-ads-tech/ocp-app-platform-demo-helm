@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rhdh-config-template
+  namespace: {{ .Values.namespace }}
+  annotations:
+    {{- include "argocd.syncwave" . | nindent 4 }}
+spec:
+  backoffLimit: 100
+  template:
+    spec:
+      containers:
+      - name: rhdh-template
+        command:
+          - /bin/bash
+          - '-c'
+          - |
+            set -x
+            ansible-playbook -i localhost /scripts/playbook.yaml
+        image: quay.io/agnosticd/ee-multicloud:latest
+        volumeMounts:
+          - mountPath: /scripts
+            name: rhdh-config-vol
+      restartPolicy: Never
+      volumes:
+      - name: rhdh-config-vol
+        configMap:
+          name: rhdh-config-template

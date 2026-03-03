@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sa-token-writer
+  labels:
+    {{- include "redhat-developer-hub-prereqs.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  playbook.yaml: |
+    ---
+    - name: Write SA token to Vault
+      hosts: localhost
+      vars:
+        namespace: {{ .Release.Namespace }}
+        vault_namespace: {{ .Values.vault.namespace }}
+        vault_name: {{ .Values.vault.name }}
+      tasks:
+        - name: Create service account token secret
+          kubernetes.core.k8s:
+            state: present
+            definition:
+              apiVersion: v1
+              kind: Secret
+              type: kubernetes.io/service-account-token
+              metadata:
+                name: default-token
+                namespace: '{{ "{{" }} namespace {{ "}}" }}'
+                annotations:
+                  kubernetes.io/service-account.name: default
+
+        - name: Wait for token to be populated
+          kubernetes.core.k8s_info:
+            api_version: v1
+            kind: Secret
+            name: default-token
+            namespace: '{{ "{{" }} namespace {{ "}}" }}'
+          register: r_token_secret
+          retries: 60
+          delay: 5
+          until:
+            - r_token_secret.resources is defined
+            - r_token_secret.resources | length > 0
+            - r_token_secret.resources[0].data is defined
+            - r_token_secret.resources[0].data.token is defined
+            - r_token_secret.resources[0].data.token | length > 0
+
+        - name: Decode token
+          ansible.builtin.set_fact:
+            sa_token: '{{ "{{" }} r_token_secret.resources[0].data.token | b64decode {{ "}}" }}'
+
+        - name: Retrieve Vault Pod
+          kubernetes.core.k8s_info:
+            kind: Pod
+            name: '{{ "{{" }} vault_name {{ "}}" }}-0'
+            namespace: '{{ "{{" }} vault_namespace {{ "}}" }}'
+          register: r_vault
+          retries: 120
+          delay: 5
+          until:
+            - r_vault.resources is defined
+            - r_vault.resources | length > 0
+            - r_vault.resources[0].status is defined
+            - r_vault.resources[0].status.phase is defined
+            - r_vault.resources[0].status.phase == 'Running'
+
+        - name: Read Vault token
+          kubernetes.core.k8s_info:
+            api_version: v1
+            kind: Secret
+            name: vault-token
+            namespace: '{{ "{{" }} vault_namespace {{ "}}" }}'
+          register: r_vault_token
+
+        - name: Set Vault token
+          ansible.builtin.set_fact:
+            vault_token: '{{ "{{" }} r_vault_token.resources[0].data.token | b64decode {{ "}}" }}'
+
+        - name: Write SA token to Vault
+          kubernetes.core.k8s_exec:
+            namespace: '{{ "{{" }} vault_namespace {{ "}}" }}'
+            pod: '{{ "{{" }} vault_name {{ "}}" }}-0'
+            command: 'sh -c "VAULT_TOKEN={{ "{{" }} vault_token {{ "}}" }} vault kv put kv/secrets/rhdh/kubernetes-sa-token value={{ "{{" }} sa_token {{ "}}" }}"'

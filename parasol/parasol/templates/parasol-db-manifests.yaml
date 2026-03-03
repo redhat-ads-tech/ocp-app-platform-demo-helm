@@ -1,0 +1,117 @@
+kind: ConfigMap
+metadata:
+  name:  parasol-db-manifests
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+apiVersion: v1
+data:
+  playbook.yaml: |
+    ---
+    - name: Parasol manifests
+      hosts: localhost
+      tasks:
+        - name: Check existence of group
+          ansible.builtin.uri:
+            url: https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/api/v4/groups/{{ $.Values.parasol.group }}
+            method: GET
+            validate_certs: false
+          register: r_liveness
+          retries: 120
+          delay: 10
+          until: r_liveness.status == 200
+
+        - name: Git config
+          ansible.builtin.command: git config --global user.email "{{ $.Values.gitlab.email.address }}"
+          ignore_errors: true
+
+        - name: Git config
+          ansible.builtin.command: git config --global user.name "{{ $.Values.gitlab.email.displayName }}"
+          ignore_errors: true
+
+{{- range $item := .Values.parasol.db.templates }}
+
+        - name: Build git repo url
+          ansible.builtin.set_fact:
+            _git_template_repo_url: https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/{{ $.Values.parasol.group }}/{{ $item.project }}
+
+        - name: Remove older repo folders
+          shell: rm -rf /tmp/{{ $item.project }}
+
+        - name: Check existence of git repo
+          ansible.builtin.uri:
+            url: '{{ "{{" }} _git_template_repo_url {{ "}}" }}'
+            method: GET
+            validate_certs: false
+          register: r_liveness
+          retries: 60
+          delay: 10
+          until: r_liveness.status == 200
+
+        - name: Clone {{ $item.project }}
+          ansible.builtin.git:
+            accept_hostkey: true
+            force: true
+            repo: '{{ "{{" }} _git_template_repo_url {{ "}}" }}'
+            dest: "/tmp/{{ $item.project }}"
+            version: "{{ $item.branch }}"
+          environment:
+            GIT_SSL_NO_VERIFY: "true"
+          register: r_git_clone
+          retries: 60
+          delay: 10
+          until: r_git_clone is not failed
+
+{{- range $item1 := $item.templates }}
+
+        - name: Fetch /tmp/{{ $item.project }}/{{ $item1 }} template from remote host
+          run_once: true
+          ansible.builtin.fetch:
+            src: /tmp/{{ $item.project }}/{{ $item1 }}
+            dest: /tmp/{{ $item1 }}
+            flat: true
+            fail_on_missing: true
+
+        - name: Apply template /tmp/{{ $item.project }}/{{ $item1 }}
+          ansible.builtin.template:
+            src: /tmp/{{ $item1 }}
+            dest: /tmp/{{ $item.project }}/{{ $item1 }}
+            mode: "0660"         
+          vars:
+            parasol_db_argocd_name: "{{ $.Values.parasol.db.argocd.name }}"
+            parasol_db_argocd_namespace: "{{ $.Values.parasol.db.argocd.namespace }}"
+            parasol_db_repo_url: "https://{{ $.Values.gitlab.host }}/parasol/{{ $item.project }}.git"
+            parasol_db_repo_revision: "{{ $item.branch }}"
+            parasol_db_namespace: "{{ $item.namespace }}"
+{{- end }}
+
+        - name: Add new files to the repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: "git add ."
+          ignore_errors: true
+
+        - name: Commit changes to the repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: >-
+              git commit -a -m 'parasol init: updates for starting scenario.'
+          ignore_errors: true
+
+        - name: Push all changes back to the project repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: >-
+              git push {{ "{{" }} _git_template_repo_url {{ "}}" }}
+
+{{- range $item2 := $item.applications }}
+
+        - name: Deploy application {{ $item2 }}
+          kubernetes.core.k8s:
+            state: present
+            definition: "{{ "{{" }} lookup('file', '/tmp/{{ $item.project }}/{{ $item2 }}') | from_yaml {{ "}}" }}"
+{{- end }}
+
+{{- end }}

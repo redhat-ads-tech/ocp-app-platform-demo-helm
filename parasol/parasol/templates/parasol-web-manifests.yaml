@@ -1,0 +1,128 @@
+kind: ConfigMap
+metadata:
+  name:  parasol-web-manifests
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+apiVersion: v1
+data:
+  playbook.yaml: |
+    ---
+    - name: Parasol manifests
+      hosts: localhost
+      tasks:
+        - name: Check existence of group
+          ansible.builtin.uri:
+            url: https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/api/v4/groups/{{ $.Values.parasol.group }}
+            method: GET
+            validate_certs: false
+          register: r_liveness
+          retries: 120
+          delay: 10
+          until: r_liveness.status == 200
+
+        - name: Git config
+          ansible.builtin.command: git config --global user.email "{{ $.Values.gitlab.email.address }}"
+          ignore_errors: true
+
+        - name: Git config
+          ansible.builtin.command: git config --global user.name "{{ $.Values.gitlab.email.displayName }}"
+          ignore_errors: true
+
+{{- range $item := .Values.parasol.web.templates }}
+
+        - name: Build git repo url
+          ansible.builtin.set_fact:
+            _git_template_repo_url: https://root:{{ $.Values.gitlab.rootPassword }}@{{ $.Values.gitlab.host }}/{{ $.Values.parasol.group }}/{{ $item.project }}
+
+        - name: Remove older repo folders
+          shell: rm -rf /tmp/{{ $item.project }}
+
+        - name: Check existence of git repo
+          ansible.builtin.uri:
+            url: '{{ "{{" }} _git_template_repo_url {{ "}}" }}'
+            method: GET
+            validate_certs: false
+          register: r_liveness
+          retries: 60
+          delay: 10
+          until: r_liveness.status == 200
+
+        - name: Clone {{ $item.project }}
+          ansible.builtin.git:
+            accept_hostkey: true
+            force: true
+            repo: '{{ "{{" }} _git_template_repo_url {{ "}}" }}'
+            dest: "/tmp/{{ $item.project }}"
+            version: "{{ $item.branch }}"
+          environment:
+            GIT_SSL_NO_VERIFY: "true"
+          register: r_git_clone
+          retries: 60
+          delay: 10
+          until: r_git_clone is not failed
+
+{{- range $item1 := $item.templates }}
+
+        - name: Fetch /tmp/{{ $item.project }}/{{ $item1 }} template from remote host
+          run_once: true
+          ansible.builtin.fetch:
+            src: /tmp/{{ $item.project }}/{{ $item1 }}
+            dest: /tmp/{{ $item1 }}
+            flat: true
+            fail_on_missing: true
+
+        - name: Apply template /tmp/{{ $item.project }}/{{ $item1 }}
+          ansible.builtin.template:
+            src: /tmp/{{ $item1 }}
+            dest: /tmp/{{ $item.project }}/{{ $item1 }}
+            mode: "0660"         
+          vars:
+            parasol_web_argocd_name: "{{ $.Values.parasol.web.argocd.name }}"
+            parasol_web_argocd_namespace: "{{ $.Values.parasol.web.argocd.namespace }}"
+            parasol_web_repo_url: "https://{{ $.Values.gitlab.host }}/{{ $.Values.parasol.group }}/{{ $item.project }}.git"
+            parasol_web_repo_revision: "{{ $item.branch }}"
+            parasol_web_namespace: "{{ $item.namespace }}"
+            parasol_web_image_registry_host: "{{ $.Values.registry.host }}"
+            parasol_web_image_registry_organization: "{{ $.Values.registry.organization }}"
+            parasol_web_image_registry_image_name: "{{ $.Values.parasol.web.image.name }}"
+            parasol_web_image_registry_image_tag: "{{ $.Values.parasol.web.image.tag }}"
+            parasol_web_image_registry_username: "{{ $.Values.registry.username }}"
+            parasol_web_image_registry_password: "{{ $.Values.registry.password }}"
+            parasol_web_store_app_url: "{{ $item.store.url }}"
+            parasol_web_store_app_service: "{{ $item.store.service }}"
+            parasol_web_sso_url: "{{ include "sso.url" (list $ $item.environment) }}"
+            parasol_web_sso_client: "{{ include "sso.client" (list $ $item.environment) }}"
+            parasol_web_sso_logout_url: "{{ include "sso.logout-url" (list $ $item) }}"
+{{- end }}
+
+        - name: Add new files to the repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: "git add ."
+          ignore_errors: true
+
+        - name: Commit changes to the repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: >-
+              git commit -a -m 'parasol init: : updates for starting scenario.'
+          ignore_errors: true
+
+        - name: Push all changes back to the project repository
+          ansible.builtin.command:
+            chdir: >-
+              /tmp/{{ $item.project }}
+            cmd: >-
+              git push {{ "{{" }} _git_template_repo_url {{ "}}" }}
+
+{{- range $item2 := $item.applications }}
+
+        - name: Deploy application {{ $item2 }}
+          kubernetes.core.k8s:
+            state: present
+            definition: "{{ "{{" }} lookup('file', '/tmp/{{ $item.project }}/{{ $item2 }}') | from_yaml {{ "}}" }}"
+{{- end }}
+
+{{- end }}

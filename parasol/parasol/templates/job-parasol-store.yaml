@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: parasol-store
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  backoffLimit: 100
+  template:
+    spec:
+      serviceAccountName: parasol
+      containers:
+      - name: parasol-store
+        command:
+          - /bin/bash
+          - '-c'
+          - |
+            set -x
+            ansible-playbook -i localhost /scripts/playbook.yaml
+        image: quay.io/agnosticd/ee-multicloud:latest
+        volumeMounts:
+          - mountPath: /scripts
+            name: parasol-store-vol
+      restartPolicy: Never
+      volumes:
+      - name: parasol-store-vol
+        configMap:
+          name: parasol-store-manifests

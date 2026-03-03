@@ -1,0 +1,43 @@
+namespace: default
+
+gitlab:
+  rootPassword:
+  host:
+  email:
+    address: "gitlab@rhdemo.com"
+    displayName: "Gitlab"
+
+rhdh:
+  template:
+    group: rhdh
+    templates:
+      - project: developer-hub-config
+        branch: main
+        templates:
+          - values.yaml
+
+backstage:
+  host:
+
+keycloak:
+  host:
+  realm:
+  loginRealm:
+  clientId:
+  clientSecret:
+
+gitops:
+  host:
+
+kubernetes:
+  api:
+
+cluster:
+  subdomain:
+
+orchestrator:
+  sonataFlowDataIndexService:
+
+argocd:
+  enabled: true
+  syncwave: "-2"
