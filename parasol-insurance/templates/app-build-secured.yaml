@@ -25,6 +25,7 @@ spec:
           host: {{ .Values.registry.host }}
         sonarqube:
           host: "http://sonarqube.sonarqube.svc:9000"
+          dashboardUrl: "https://sonarqube-sonarqube.{{ .Values.cluster.subdomain }}"
   syncPolicy:
     automated:
       prune: true
