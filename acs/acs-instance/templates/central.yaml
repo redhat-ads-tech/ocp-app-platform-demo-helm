@@ -15,6 +15,10 @@ spec:
         enabled: false
       nodePort:
         enabled: false
+{{- if .Values.adminPassword }}
+    adminPasswordSecret:
+      name: central-admin-password
+{{- end }}
     defaultTLSSecret:
       name: central-default-tls-cert
     persistence:
