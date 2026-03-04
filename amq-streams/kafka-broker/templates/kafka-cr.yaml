@@ -27,10 +27,6 @@ spec:
       type: internal
       tls: false
       {{- include "kafka-broker.authentication" . | nindent 6 }}
-    - name: local
-      port: 9093
-      type: internal
-      tls: false
     config:
       allow.everyone.if.no.acl.found: 'true'
       auto.create.topics.enable: {{ .Values.kafka.config.autoCreateTopics }}
