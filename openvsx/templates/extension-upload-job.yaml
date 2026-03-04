@@ -21,7 +21,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: upload
-          image: registry.access.redhat.com/ubi9:latest
+          image: image-registry.openshift-image-registry.svc:5000/{{ .Release.Namespace }}/openvsx-extension-uploader:latest
           command:
             - /bin/bash
             - -c
@@ -33,13 +33,6 @@ spec:
               PG_PORT={{ .Values.postgresql.port }}
               PG_DB="${POSTGRESQL_DATABASE}"
               PG_USER="${POSTGRESQL_USER}"
-
-              # Install required tools
-              echo "Installing dependencies..."
-              dnf module enable -y nodejs:20
-              dnf install -y --nodocs nodejs npm postgresql
-              curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq && chmod +x /usr/local/bin/yq
-              npm install -g ovsx
 
               # Wait for OpenVSX server readiness
               echo "Waiting for OpenVSX server..."

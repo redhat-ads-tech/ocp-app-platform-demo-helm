@@ -40,4 +40,3 @@ build:
 
 extensionUpload:
   enabled: true
-  image: registry.access.redhat.com/ubi9/nodejs-20:latest

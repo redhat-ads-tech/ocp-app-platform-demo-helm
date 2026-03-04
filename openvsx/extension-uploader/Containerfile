@@ -1,0 +1,10 @@
+FROM registry.access.redhat.com/ubi9:latest
+
+RUN dnf module enable -y nodejs:20 && \
+    dnf install -y --nodocs nodejs npm postgresql curl && \
+    dnf clean all && \
+    npm install -g ovsx && \
+    npm cache clean --force
+
+RUN curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+      -o /usr/local/bin/yq && chmod +x /usr/local/bin/yq
