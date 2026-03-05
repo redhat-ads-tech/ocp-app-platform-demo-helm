@@ -1,12 +1,22 @@
+# Extensions should match the recommended extensions in the parasol-insurance
+# repo's .vscode/extensions.json. Pin stable (non-pre-release) versions since
+# pre-release versions prevent auto-install in DevSpaces workspaces.
 extensions:
   - id: continue.continue
-    version: 1.3.32
+    version: 1.2.16
   - id: redhat.java
+    version: 1.53.0
   - id: redhat.vscode-yaml
+    version: 1.21.0
   - id: vscjava.vscode-java-debug
+    version: 0.58.5
   - id: vscjava.vscode-java-test
+    version: 0.44.0
   - id: redhat.vscode-microprofile
+    version: 0.16.0
   - id: vscjava.vscode-maven
-  - id: vscode.html-language-features
+    version: 0.45.1
   - id: redhat.vscode-quarkus
+    version: 1.22.0
   - id: redhat.fabric8-analytics
+    version: 0.10.2
