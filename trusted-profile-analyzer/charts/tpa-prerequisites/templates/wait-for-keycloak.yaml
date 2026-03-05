@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-for-keycloak
+  labels:
+    {{- include "tpa-prerequisites.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 30
+  template:
+    metadata:
+      labels:
+        {{- include "tpa-prerequisites.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: wait
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for OIDC endpoint: {{ .Values.oidc.issuerUrl }}"
+              until curl -sf -o /dev/null "{{ .Values.oidc.issuerUrl }}/.well-known/openid-configuration"; do
+                echo "OIDC endpoint not ready, retrying in 10s..."
+                sleep 10
+              done
+              echo "OIDC endpoint is ready"

@@ -96,6 +96,9 @@ keycloak:
       name: openshift
       redirectUri: ""
       secret: ""
+    tpaCli:
+      name: tpa-cli
+      secret: ""
   users:
     password: ""
 
@@ -166,6 +169,19 @@ rhdh:
       values:
         git:
           host: ""
+
+tpa:
+  enabled: true
+  name: trusted-profile-analyzer
+  namespace: trusted-profile-analyzer
+  appDomain: ""
+  oidcIssuer: ""
+  postgresql:
+    user: trustify
+    database: trustify
+    password: trustify
+  s3:
+    region: ""
 
 rhtas:
   name: trusted-artifact-signer

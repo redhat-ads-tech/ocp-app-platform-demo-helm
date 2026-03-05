@@ -1,0 +1,75 @@
+nameOverride: "tpa-postgresql"
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: registry.redhat.io/rhel9/postgresql-16
+  pullPolicy: IfNotPresent
+  tag: "1"
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+podAnnotations: {}
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  timeoutSeconds: 1
+  initialDelaySeconds: 5
+  tcpSocket:
+    port: 5432
+
+readinessProbe:
+  timeoutSeconds: 1
+  initialDelaySeconds: 5
+  exec:
+    command:
+    - "/bin/sh"
+    - "-i"
+    - "-c"
+    - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
+
+service:
+  portName: postgresql
+  port: 5432
+  containerPort: 5432
+  type: ClusterIP
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+pgsql:
+  user: trustify
+  password: trustify
+  database: trustify
+
+persistence:
+  mode: persistent
+  capacity: 20Gi
+
+oidc:
+  issuerUrl: ""
+  tpaCli:
+    secret: ""
+
+argocd:
+  enabled: true
+  syncwave: "-1"

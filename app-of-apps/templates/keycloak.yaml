@@ -41,6 +41,14 @@ spec:
               name: {{ .Values.keycloak.client.openshift.name }}
               redirectUri: {{ .Values.keycloak.client.openshift.redirectUri }}
               secret: {{ .Values.keycloak.client.openshift.secret | quote }}
+            tpaFrontend:
+              name: tpa-frontend
+              redirectUri:
+                - https://server-trusted-profile-analyzer.{{ .Values.cluster.subdomain }}
+                - https://server-trusted-profile-analyzer.{{ .Values.cluster.subdomain }}/*
+            tpaCli:
+              name: tpa-cli
+              secret: {{ .Values.keycloak.client.tpaCli.secret | quote }}
           users:
             password: {{ .Values.keycloak.users.password | quote }}
 {{ include "app-of-apps.syncPolicy" . | indent 2 }}

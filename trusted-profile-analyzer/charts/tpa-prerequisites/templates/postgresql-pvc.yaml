@@ -1,0 +1,16 @@
+{{- if eq .Values.persistence.mode "persistent" -}}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "tpa-prerequisites.name" . }}
+  labels:
+    {{- include "tpa-prerequisites.labels" . | nindent 4 }}
+  annotations:
+    {{- include "tpa-prerequisites.argocd-syncwave" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistence.capacity }}
+{{- end }}
