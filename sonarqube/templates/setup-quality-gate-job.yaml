@@ -44,12 +44,12 @@ spec:
                 -d "name=Parasol" || echo "(may already exist)"
 
               # The gate is created with default CAYC conditions including coverage.
-              # Remove the coverage and new_violations conditions.
-              echo "Removing coverage and new_violations conditions..."
+              # Remove the coverage condition only.
+              echo "Removing coverage condition..."
               CONDITIONS=$(curl -sf -u "${SONAR_AUTH}" \
                 "${SONAR_URL}/api/qualitygates/show?name=Parasol")
 
-              for METRIC in new_coverage new_violations; do
+              for METRIC in new_coverage; do
                 COND_ID=$(echo "${CONDITIONS}" | grep -o "\"id\":\"[^\"]*\",\"metric\":\"${METRIC}\"" | grep -o '"id":"[^"]*"' | grep -o '[a-f0-9-]\{36\}')
                 if [ -n "${COND_ID}" ]; then
                   echo "  Removing ${METRIC} (${COND_ID})..."
