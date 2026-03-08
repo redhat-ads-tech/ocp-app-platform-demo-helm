@@ -130,3 +130,6 @@ data:
 {{- if and $.Values.secrets.litellm.apiUrl $.Values.secrets.litellm.apiKey }}
             - 'vault kv put kv/secrets/litellm/credentials base_url={{ $.Values.secrets.litellm.apiUrl }} api_key={{ $.Values.secrets.litellm.apiKey }}'
 {{- end }}
+{{- if $.Values.secrets.tpa.cliClientSecret }}
+            - 'vault kv put kv/secrets/tpa/cli-client-secret value={{ $.Values.secrets.tpa.cliClientSecret }}'
+{{- end }}

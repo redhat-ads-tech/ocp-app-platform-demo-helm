@@ -39,6 +39,8 @@ vault:
       adminPassword: ""
     kafka:
       userPassword: ""
+    tpa:
+      cliClientSecret: ""
 
 externalSecrets:
   name: external-secrets
