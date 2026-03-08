@@ -46,6 +46,8 @@ spec:
             adminPassword: {{ .Values.vault.secrets.sonarqube.adminPassword | quote }}
           kafka:
             userPassword: {{ .Values.vault.secrets.kafka.userPassword | quote }}
+          tpa:
+            cliClientSecret: {{ .Values.vault.secrets.tpa.cliClientSecret | quote }}
   syncPolicy:
     automated: {}
     syncOptions:

@@ -28,3 +28,5 @@ secrets:
     apiKey: ""
   kafka:
     userPassword: ""
+  tpa:
+    cliClientSecret: ""
