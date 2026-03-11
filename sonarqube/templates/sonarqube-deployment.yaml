@@ -65,12 +65,14 @@ spec:
             httpGet:
               path: /
               port: {{ .Values.sonarqube.port }}
-            initialDelaySeconds: 45
+            initialDelaySeconds: 90
+            periodSeconds: 60
           readinessProbe:
             httpGet:
               path: /
               port: {{ .Values.sonarqube.port }}
-            initialDelaySeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 30
           volumeMounts:
             - name: sonarqube-data
               mountPath: /opt/sonarqube/data
