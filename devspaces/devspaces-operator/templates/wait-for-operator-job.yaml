@@ -1,3 +1,9 @@
+# The DevSpaces CRD uses a conversion webhook served by the operator pod.
+# OLM can fail to install if it tries to validate CRs against the new CRD
+# before the operator pod is ready to serve the webhook, causing a terminal
+# InstallPlan failure. This Job sits between the Subscription (wave -2) and
+# the CheCluster (wave 0), blocking ArgoCD from advancing until the CSV is
+# installed and the webhook endpoint is live.
 ---
 apiVersion: v1
 kind: ServiceAccount
