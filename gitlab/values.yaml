@@ -87,6 +87,8 @@ gitlab:
       branch: main
       templates:
         - templates/parasol-insurance-secured/template.yaml
+        - templates/request-kafka-topic/template.yaml
+        - templates/request-kafka-user/template.yaml
 postgresql:
   dbUser: gitlab
   dbPassword: passw0rd
