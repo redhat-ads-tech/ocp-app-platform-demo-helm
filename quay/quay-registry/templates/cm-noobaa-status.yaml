@@ -24,7 +24,11 @@ data:
           retries: 120
           delay: 10
 
-        - name: Wait for default BackingStore to be created
+        # The default BackingStore is created with insufficient memory (256Mi)
+        # and requires at least 400Mi, causing it to enter Rejected phase.
+        # We must wait for it to exist first, patch the resources, then wait
+        # for Ready — otherwise the wait-for-Ready and patch steps deadlock.
+        - name: Wait for default BackingStore to exist
           kubernetes.core.k8s_info:
             api_version: noobaa.io/v1alpha1
             kind: BackingStore
@@ -33,9 +37,6 @@ data:
           register: r_backingstore
           until:
             - r_backingstore.resources | length > 0
-            - r_backingstore.resources[0].status is defined
-            - r_backingstore.resources[0].status.phase is defined
-            - r_backingstore.resources[0].status.phase == "Ready"
           retries: 60
           delay: 10
 
@@ -57,3 +58,17 @@ data:
                     limits:
                       cpu: "1"
                       memory: 4Gi
+
+        - name: Wait for default BackingStore to be Ready
+          kubernetes.core.k8s_info:
+            api_version: noobaa.io/v1alpha1
+            kind: BackingStore
+            name: noobaa-default-backing-store
+            namespace: '{{ "{{" }} noobaa_namespace {{ "}}" }}'
+          register: r_backingstore
+          until:
+            - r_backingstore.resources[0].status is defined
+            - r_backingstore.resources[0].status.phase is defined
+            - r_backingstore.resources[0].status.phase == "Ready"
+          retries: 60
+          delay: 10

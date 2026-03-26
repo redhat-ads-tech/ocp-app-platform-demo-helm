@@ -1,3 +1,4 @@
+{{- if not .Values.keycloak.disabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 {{ include "app-of-apps.metadata" (dict "name" .Values.keycloak.name "namespace" .Values.argocd.namespace "syncWave" "1") }}
@@ -26,6 +27,8 @@ spec:
         keycloak-realm-import:
           keycloak:
             name: {{ .Values.keycloak.crName }}
+          cluster:
+            subdomain: {{ .Values.cluster.subdomain }}
           realm:
             name: {{ .Values.keycloak.realm.name }}
           client:
@@ -52,3 +55,4 @@ spec:
           users:
             password: {{ .Values.keycloak.users.password | quote }}
 {{ include "app-of-apps.syncPolicy" . | indent 2 }}
+{{- end }}

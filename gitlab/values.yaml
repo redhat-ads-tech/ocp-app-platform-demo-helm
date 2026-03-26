@@ -46,6 +46,10 @@ gitlab:
           url: https://github.com/redhat-ads-tech/devfiles.git
         - name: rhdh-templates
           url: https://github.com/redhat-ads-tech/ocp-app-platform-demo-rhdh-templates.git
+        - name: helm-charts
+          url: https://github.com/redhat-ads-tech/ocp-app-platform-demo-apps-helm.git
+        - name: infra-app-of-apps
+          url: https://github.com/redhat-ads-tech/ocp-app-platform-demo-infra-app-of-apps.git
       users:
         - id: pe1
         - id: pe2
@@ -85,6 +89,9 @@ gitlab:
       branch: main
       templates:
         - templates/parasol-insurance-secured/template.yaml
+        - templates/request-kafka-topic/template.yaml
+        - templates/request-kafka-user/template.yaml
+        - templates/quarkus-rest-api/template.yaml
 postgresql:
   dbUser: gitlab
   dbPassword: passw0rd

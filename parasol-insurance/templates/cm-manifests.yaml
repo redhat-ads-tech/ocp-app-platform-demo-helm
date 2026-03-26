@@ -198,6 +198,7 @@ data:
             body_format: json
             body:
               ref: "refs/heads/main"
+              after: "{{ "{{" }} _head_sha {{ "}}" }}"
               checkout_sha: "{{ "{{" }} _head_sha {{ "}}" }}"
             validate_certs: false
             status_code:

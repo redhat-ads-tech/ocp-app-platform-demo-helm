@@ -1,0 +1,122 @@
+{{- $prefix := include "parasol-insurance-tenant.prefix" . -}}
+{{- range $env := list "dev" "prod" }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: parasol-db
+  namespace: {{ $prefix }}-{{ $env }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+type: Opaque
+stringData:
+  database-user: {{ $.Values.database.user }}
+  database-password: {{ $.Values.database.password }}
+  database-name: {{ $.Values.database.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: parasol-db
+  namespace: {{ $prefix }}-{{ $env }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: parasol-db
+---
+{{- if $.Values.database.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: parasol-db
+  namespace: {{ $prefix }}-{{ $env }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $.Values.database.persistence.capacity }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parasol-db
+  namespace: {{ $prefix }}-{{ $env }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parasol-db
+  template:
+    metadata:
+      labels:
+        app: parasol-db
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgresql
+          image: {{ $.Values.database.image }}
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: parasol-db
+                  key: database-user
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: parasol-db
+                  key: database-password
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: parasol-db
+                  key: database-name
+          resources:
+            limits:
+              cpu: {{ $.Values.database.resources.limits.cpu }}
+              memory: {{ $.Values.database.resources.limits.memory }}
+            requests:
+              cpu: {{ $.Values.database.resources.requests.cpu }}
+              memory: {{ $.Values.database.resources.requests.memory }}
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - '-c'
+                - psql -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE -c 'SELECT 1'
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/pgsql/data
+      volumes:
+        - name: data
+{{- if $.Values.database.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: parasol-db
+{{- else }}
+          emptyDir: {}
+{{- end }}
+{{- end }}
