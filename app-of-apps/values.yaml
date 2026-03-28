@@ -50,6 +50,10 @@ openshiftPipelines:
   name: openshift-pipelines
   namespace: openshift-operators
 
+openshiftBuilds:
+  name: openshift-builds
+  namespace: openshift-builds
+
 serviceMesh:
   name: service-mesh
   namespace: openshift-operators
