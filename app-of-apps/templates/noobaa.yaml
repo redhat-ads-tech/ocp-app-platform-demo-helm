@@ -21,6 +21,10 @@ spec:
     targetRevision: {{ .Values.gitops.targetRevision }}
     helm:
       valuesObject:
+        noobaa-operator:
+          noobaa:
+            subscription:
+              source: {{ include "app-of-apps.operatorSource" . }}
         noobaa:
           nameOverride: {{ .Values.noobaa.name }}
 {{ include "app-of-apps.syncPolicy" . | indent 2 }}

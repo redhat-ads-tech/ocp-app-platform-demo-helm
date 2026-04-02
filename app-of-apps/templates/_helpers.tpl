@@ -20,6 +20,19 @@ syncPolicy:
 {{- end }}
 
 {{/*
+Returns the operator catalog source name.
+When catalog snapshot is enabled, returns the custom CatalogSource name;
+otherwise returns "redhat-operators".
+*/}}
+{{- define "app-of-apps.operatorSource" -}}
+{{- if .Values.catalogSource.enabled -}}
+{{ .Values.catalogSource.name }}
+{{- else -}}
+redhat-operators
+{{- end -}}
+{{- end -}}
+
+{{/*
 Common Application metadata with foreground finalizer.
 Usage: {{ include "app-of-apps.metadata" (dict "name" "my-app" "namespace" .Values.argocd.namespace "syncWave" "0") }}
 */}}

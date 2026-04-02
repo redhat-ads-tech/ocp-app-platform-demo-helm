@@ -10,6 +10,8 @@ operator:
   channel: fast-1.8
   startingCSV: rhdh-operator.v1.8.3
   installPlanApproval: Automatic
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
 
 argocd:
   enabled: true

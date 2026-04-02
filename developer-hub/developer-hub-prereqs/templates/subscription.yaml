@@ -14,5 +14,5 @@ spec:
   {{- end }}
   installPlanApproval: {{ .Values.operator.installPlanApproval }}
   name: rhdh
-  source: redhat-operators
-  sourceNamespace: openshift-marketplace
+  source: {{ .Values.operator.source }}
+  sourceNamespace: {{ .Values.operator.sourceNamespace }}

@@ -12,6 +12,8 @@ spec:
     targetRevision: {{ .Values.gitops.targetRevision }}
     helm:
       valuesObject:
+        operator:
+          source: {{ include "app-of-apps.operatorSource" . }}
         vault:
           namespace: {{ .Values.vault.namespace }}
           name: {{ .Values.vault.name }}

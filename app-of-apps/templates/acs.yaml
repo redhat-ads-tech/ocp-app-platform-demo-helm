@@ -13,6 +13,9 @@ spec:
     targetRevision: {{ .Values.gitops.targetRevision }}
     helm:
       valuesObject:
+        acs-operator:
+          subscription:
+            source: {{ include "app-of-apps.operatorSource" . }}
         acs-instance:
           clusterName: {{ .Values.acs.clusterName }}
           adminPassword: {{ .Values.acs.adminPassword }}

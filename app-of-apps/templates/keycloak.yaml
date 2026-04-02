@@ -18,6 +18,10 @@ spec:
     targetRevision: {{ .Values.gitops.targetRevision }}
     helm:
       valuesObject:
+        keycloak-operator:
+          keycloak:
+            subscription:
+              source: {{ include "app-of-apps.operatorSource" . }}
         keycloak:
           nameOverride: {{ .Values.keycloak.crName }}
           route:

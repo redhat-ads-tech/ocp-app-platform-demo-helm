@@ -12,6 +12,9 @@ spec:
     targetRevision: {{ .Values.gitops.targetRevision }}
     helm:
       valuesObject:
+        quay-operator:
+          subscription:
+            source: {{ include "app-of-apps.operatorSource" . }}
         quay-registry:
           quay:
             host: {{ .Values.quay.host }}

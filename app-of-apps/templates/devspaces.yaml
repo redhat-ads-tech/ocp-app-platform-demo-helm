@@ -13,6 +13,10 @@ spec:
     targetRevision: {{ .Values.gitops.targetRevision }}
     helm:
       valuesObject:
+        devspaces-operator:
+          devspaces:
+            subscription:
+              source: {{ include "app-of-apps.operatorSource" . }}
         devspaces-instance:
           gitlab:
             host: {{ .Values.gitlab.host }}
