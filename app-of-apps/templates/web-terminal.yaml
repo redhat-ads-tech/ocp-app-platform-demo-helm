@@ -10,10 +10,6 @@ spec:
     path: web-terminal
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    helm:
-      valuesObject:
-        subscription:
-          source: {{ include "app-of-apps.operatorSource" . }}
   syncPolicy:
     automated: {}
     syncOptions:

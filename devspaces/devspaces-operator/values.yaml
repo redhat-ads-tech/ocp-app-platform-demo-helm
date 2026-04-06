@@ -12,6 +12,15 @@ devspaces:
     startingCSV: ""
     sourceNamespace: openshift-marketplace
 
+webTerminal:
+  enabled: true
+  subscription:
+    channel: fast
+    name: web-terminal
+    installPlanApproval: Automatic
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+
 argocd:
   enabled: true
   operatorgroup:

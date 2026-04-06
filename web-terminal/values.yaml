@@ -1,9 +1,2 @@
-subscription:
-  channel: fast
-  installPlanApproval: Automatic
-  name: web-terminal
-  source: redhat-operators
-  sourceNamespace: openshift-marketplace
-
 tooling:
   image: quay.io/tssc_demos/etx-custom-web-terminal:v0.1
