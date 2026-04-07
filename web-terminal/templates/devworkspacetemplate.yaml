@@ -52,16 +52,21 @@ spec:
           - --authenticated-user-id
           - $(DEVWORKSPACE_CREATOR)
           - --idle-timeout
-          - "15m"
+          - $(WEB_TERMINAL_IDLE_TIMEOUT)
           - --pod-selector
           - controller.devfile.io/devworkspace_id=$(DEVWORKSPACE_ID)
+          - --use-tls
           - --use-bearer-token
+        env:
+          - name: WEB_TERMINAL_IDLE_TIMEOUT
+            value: "15m"
+        endpoints:
+          - name: exec
+            targetPort: 4444
+            attributes:
+              type: main
         cpuLimit: 400m
         cpuRequest: 100m
-        memoryLimit: 256Mi
-        memoryRequest: 32Mi
+        memoryLimit: 128Mi
+        memoryRequest: 128Mi
         mountSources: false
-  commands:
-    - id: init-container-command
-      apply:
-        component: web-terminal-exec
