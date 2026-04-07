@@ -7,7 +7,7 @@ apiVersion: workspace.devfile.io/v1alpha2
 kind: DevWorkspaceTemplate
 metadata:
   name: web-terminal-tooling
-  namespace: openshift-operators
+  namespace: openshift-devspaces
   annotations:
     controller.devfile.io/allow-import-from: "*"
     web-terminal.redhat.com/unmanaged-state: "true"

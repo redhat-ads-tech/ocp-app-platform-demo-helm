@@ -3,11 +3,11 @@ kind: Application
 {{ include "app-of-apps.metadata" (dict "name" "web-terminal" "namespace" .Values.argocd.namespace "syncWave" "1") }}
 spec:
   destination:
-    namespace: openshift-operators
+    namespace: openshift-devspaces
     server: https://kubernetes.default.svc
   project: default
   source:
     path: web-terminal
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-  {{ include "app-of-apps.syncPolicy" . | nindent 2 }}
+{{ include "app-of-apps.syncPolicy" . | indent 2 }}
