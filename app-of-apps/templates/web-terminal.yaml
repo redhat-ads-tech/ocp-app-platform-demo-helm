@@ -10,4 +10,18 @@ spec:
     path: web-terminal
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-{{ include "app-of-apps.syncPolicy" . | indent 2 }}
+  # Custom syncPolicy without prune — the web-terminal operator manages
+  # web-terminal-exec in this namespace and pruning would delete it.
+  syncPolicy:
+    automated:
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 2m0s
+      limit: 30
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+      - SkipDryRunOnMissingResource=true
