@@ -20,7 +20,7 @@ spec:
           app.kubernetes.io/component: workspaces-config
         annotations:
           controller.devfile.io/mount-as: subpath
-          controller.devfile.io/mount-path: /home/user/.continue/
+          controller.devfile.io/mount-path: /home/user/.continue-config/
       data:
         config.yaml: |
           name: Continue Config
