@@ -179,7 +179,6 @@ spec:
         ANTHROPIC_BASE_URL: "{{ printf "{{ .base_url }}" }}"
         ANTHROPIC_API_KEY: "{{ printf "{{ .api_key }}" }}"
         ANTHROPIC_MODEL: "claude-opus-4-6"
-        ANTHROPIC_AUTH_TOKEN: "dummy"
         DEV_KAFKA_PASSWORD: "{{ printf "{{ .kafka_password }}" }}"
   data:
     - secretKey: api_key
