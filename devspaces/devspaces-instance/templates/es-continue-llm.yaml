@@ -176,7 +176,7 @@ spec:
         # Required by the Claude Code VS Code extension to connect to a
         # vLLM-hosted model via the Anthropic-compatible API.
         # See: https://docs.vllm.ai/en/stable/serving/integrations/claude_code/
-        ANTHROPIC_BASE_URL: "{{ printf "{{ .base_url }}" }}"
+        ANTHROPIC_BASE_URL: "{{ printf "{{ .base_url | trimSuffix \"/v1\" }}" }}"
         ANTHROPIC_API_KEY: "{{ printf "{{ .api_key }}" }}"
         ANTHROPIC_MODEL: "claude-opus-4-6"
         DEV_KAFKA_PASSWORD: "{{ printf "{{ .kafka_password }}" }}"
