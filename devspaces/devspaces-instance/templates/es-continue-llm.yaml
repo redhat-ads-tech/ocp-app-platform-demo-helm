@@ -172,6 +172,9 @@ spec:
           controller.devfile.io/mount-as: subpath
           controller.devfile.io/mount-path: /home/user/.claude-config
       data:
+        # The approved key is the API key with the first 5 characters stripped
+        # (e.g. "sk-v0abc123" becomes "abc123"). This pre-approves the key so
+        # Claude Code doesn't prompt the user to trust it on first run.
         .claude.json: |
           {
             "numStartups": 4,
@@ -179,7 +182,7 @@ spec:
             "autoUpdates": false,
             "customApiKeyResponses": {
               "approved": [
-                {{ printf "\"{{ .api_key | trimPrefix `sk-o0` }}\"" }}
+                {{ printf "\"{{ substr 5 -1 .api_key }}\"" }}
               ],
               "rejected": []
             },
