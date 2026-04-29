@@ -13,6 +13,12 @@ spec:
     targetRevision: {{ .Values.gitops.targetRevision }}
     helm:
       valuesObject:
+        amq-streams-operator:
+          subscription:
+            source: {{ include "app-of-apps.operatorSource" . }}
+        amq-streams-console-operator:
+          subscription:
+            source: {{ include "app-of-apps.operatorSource" . }}
         kafka-broker:
           namespace: {{ .Values.amqStreams.namespace }}
         amq-streams-console:

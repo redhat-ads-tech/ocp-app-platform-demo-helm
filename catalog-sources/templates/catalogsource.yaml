@@ -1,0 +1,13 @@
+{{- range .Values.catalogSources }}
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+spec:
+  sourceType: grpc
+  image: {{ .image }}:{{ .tag }}
+  displayName: {{ .displayName | quote }}
+  publisher: {{ .publisher | quote }}
+{{- end }}

@@ -1,6 +1,9 @@
 keycloak:
   name: keycloak
 
+cluster:
+  subdomain: ""
+
 realm:
   name: backstage
 

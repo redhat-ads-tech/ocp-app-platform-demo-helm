@@ -5,8 +5,12 @@ extensions:
   # Dependency of other extensions — must be uploaded first
   - id: vscode.html-language-features
     version: 1.95.3
+  - id: anthropic.claude-code
+    version: 2.1.109
   - id: continue.continue
     version: 1.2.14
+  - id: RooVeterinaryInc.roo-cline
+    version: 3.52.1
   - id: redhat.java
     version: 1.53.0
   - id: redhat.vscode-yaml

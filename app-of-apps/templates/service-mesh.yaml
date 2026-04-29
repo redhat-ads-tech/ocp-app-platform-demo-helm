@@ -15,6 +15,12 @@ spec:
     path: service-mesh
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        serviceMesh:
+          source: {{ include "app-of-apps.operatorSource" . }}
+        kiali:
+          source: {{ include "app-of-apps.operatorSource" . }}
   syncPolicy:
     automated:
       prune: true

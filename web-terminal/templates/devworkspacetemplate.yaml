@@ -7,7 +7,7 @@ apiVersion: workspace.devfile.io/v1alpha2
 kind: DevWorkspaceTemplate
 metadata:
   name: web-terminal-tooling
-  namespace: openshift-operators
+  namespace: openshift-devspaces
   annotations:
     controller.devfile.io/allow-import-from: "*"
     web-terminal.redhat.com/unmanaged-state: "true"
@@ -29,3 +29,44 @@ spec:
         memoryRequest: 128Mi
         mountSources: false
         sourceMapping: /projects
+---
+# The web-terminal operator normally creates this template at startup, but the
+# controller runs in openshift-operators while DevWorkspaces reference
+# openshift-devspaces. We manage it here so it exists in the right namespace.
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspaceTemplate
+metadata:
+  name: web-terminal-exec
+  namespace: openshift-devspaces
+  annotations:
+    controller.devfile.io/allow-import-from: "*"
+  labels:
+    console.openshift.io/terminal: "true"
+spec:
+  components:
+    - name: web-terminal-exec
+      container:
+        image: {{ .Values.exec.image }}
+        command:
+          - /go/bin/che-machine-exec
+          - --authenticated-user-id
+          - $(DEVWORKSPACE_CREATOR)
+          - --idle-timeout
+          - $(WEB_TERMINAL_IDLE_TIMEOUT)
+          - --pod-selector
+          - controller.devfile.io/devworkspace_id=$(DEVWORKSPACE_ID)
+          - --use-tls
+          - --use-bearer-token
+        env:
+          - name: WEB_TERMINAL_IDLE_TIMEOUT
+            value: "15m"
+        endpoints:
+          - name: exec
+            targetPort: 4444
+            attributes:
+              type: main
+        cpuLimit: 400m
+        cpuRequest: 100m
+        memoryLimit: 128Mi
+        memoryRequest: 128Mi
+        mountSources: false

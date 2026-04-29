@@ -757,6 +757,7 @@ spec:
         attributes:
           oidc.ciba.grant.enabled: 'false'
           backchannel.logout.session.required: 'true'
+          post.logout.redirect.uris: "https://console-openshift-console.{{ .Values.cluster.subdomain }}/*"
           display.on.consent.screen: 'false'
           oauth2.device.authorization.grant.enabled: 'false'
           backchannel.logout.revoke.offline.tokens: 'false'

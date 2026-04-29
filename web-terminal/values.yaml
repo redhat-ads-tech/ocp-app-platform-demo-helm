@@ -1,2 +1,4 @@
 tooling:
   image: quay.io/tssc_demos/etx-custom-web-terminal:v0.1
+exec:
+  image: registry.redhat.io/web-terminal/web-terminal-exec-rhel9@sha256:f887c71de000744733326c39725e52d7e576c0e8a9177548d59eb98706b97189

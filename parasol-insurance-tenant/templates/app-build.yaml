@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ include "parasol-insurance-tenant.prefix" . }}-build
+  namespace: {{ .Values.argocd.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: {{ include "parasol-insurance-tenant.prefix" . }}-build
+    server: https://kubernetes.default.svc
+  project: {{ .Values.tenant.username }}
+  source:
+    path: build
+    repoURL: https://{{ .Values.gitlab.host }}/{{ .Values.tenant.username }}/parasol-insurance-secured-manifests.git
+    targetRevision: main
+    helm:
+      valuesObject:
+        namespace: {{ include "parasol-insurance-tenant.prefix" . }}-build
+        gitlab:
+          host: {{ .Values.gitlab.host }}
+        registry:
+          host: {{ .Values.registry.host }}
+        cluster_subdomain: {{ .Values.cluster.subdomain }}
+        sonarqube:
+          host: "http://sonarqube.sonarqube.svc:9000"
+          dashboardUrl: "https://sonarqube-sonarqube.{{ .Values.cluster.subdomain }}"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true

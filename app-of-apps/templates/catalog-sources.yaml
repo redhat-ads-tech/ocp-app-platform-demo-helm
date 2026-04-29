@@ -1,0 +1,36 @@
+{{- if .Values.catalogSource.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+{{ include "app-of-apps.metadata" (dict "name" "catalog-sources" "namespace" .Values.argocd.namespace "syncWave" "-1") }}
+spec:
+  destination:
+    namespace: openshift-marketplace
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: catalog-sources
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    helm:
+      valuesObject:
+        catalogSources:
+          - name: {{ .Values.catalogSource.name }}
+            image: {{ .Values.catalogSource.image }}
+            tag: {{ .Values.catalogSource.tag }}
+            namespace: {{ .Values.catalogSource.namespace }}
+            displayName: {{ .Values.catalogSource.displayName | quote }}
+            publisher: {{ .Values.catalogSource.publisher | quote }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 2m0s
+      limit: 30
+    syncOptions:
+      - CreateNamespace=false
+      - RespectIgnoreDifferences=true
+{{- end }}

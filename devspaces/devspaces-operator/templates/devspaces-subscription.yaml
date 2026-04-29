@@ -12,4 +12,6 @@ spec:
   name: {{ .Values.devspaces.subscription.name }}
   source: {{ .Values.devspaces.subscription.source }}
   sourceNamespace: {{ .Values.devspaces.subscription.sourceNamespace }}
+  {{- if .Values.devspaces.subscription.startingCSV }}
   startingCSV: {{ .Values.devspaces.subscription.startingCSV }}
+  {{- end }}

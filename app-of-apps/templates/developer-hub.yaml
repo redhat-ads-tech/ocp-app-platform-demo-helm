@@ -12,6 +12,11 @@ spec:
     targetRevision: {{ .Values.gitops.targetRevision }}
     helm:
       valuesObject:
+        operator:
+          source: {{ include "app-of-apps.operatorSource" . }}
+          {{- if .Values.catalogSource.enabled }}
+          startingCSV: ""
+          {{- end }}
         vault:
           namespace: {{ .Values.vault.namespace }}
           name: {{ .Values.vault.name }}

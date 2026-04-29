@@ -3,15 +3,25 @@ kind: Application
 {{ include "app-of-apps.metadata" (dict "name" "web-terminal" "namespace" .Values.argocd.namespace "syncWave" "1") }}
 spec:
   destination:
-    namespace: openshift-operators
+    namespace: openshift-devspaces
     server: https://kubernetes.default.svc
   project: default
   source:
     path: web-terminal
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
+  # Custom syncPolicy without prune — the web-terminal operator manages
+  # web-terminal-exec in this namespace and pruning would delete it.
   syncPolicy:
-    automated: {}
+    automated:
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 2m0s
+      limit: 30
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
       - RespectIgnoreDifferences=true
+      - SkipDryRunOnMissingResource=true

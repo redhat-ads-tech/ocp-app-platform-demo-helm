@@ -1,0 +1,5 @@
+apiVersion: v2
+name: catalog-sources
+description: Deploys custom OLM CatalogSources for operator version pinning
+type: application
+version: 0.1.0

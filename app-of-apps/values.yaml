@@ -5,6 +5,18 @@ gitops:
 argocd:
   namespace: openshift-gitops
 
+# Operator version pinning via custom CatalogSource.
+# When enabled, a snapshot of the Red Hat operator catalog is deployed
+# and all operator subscriptions use it instead of the live catalog.
+catalogSource:
+  enabled: false
+  name: redhat-operators-snapshot
+  namespace: openshift-marketplace
+  image: quay.io/gpte-devops-automation/olm_snapshot_redhat_catalog
+  tag: v4.20_2026_02_11
+  displayName: "Red Hat Operators (Snapshot)"
+  publisher: "Red Hat Demo Platform"
+
 cluster:
   subdomain: ""
   apiServer: ""
@@ -77,6 +89,7 @@ gitlab:
     host: ""
 
 keycloak:
+  disabled: false
   name: keycloak
   namespace: keycloak
   crName: keycloak
@@ -195,6 +208,7 @@ rhtas:
     org: Parasol
 
 openshiftOAuth:
+  disabled: false
   name: openshift-oauth
   namespace: openshift-config
 
@@ -206,6 +220,9 @@ devspaces:
   enabled: true
   name: devspaces
   namespace: openshift-devspaces
+
+infraAppOfApps:
+  name: infra-app-of-apps
 
 amqStreams:
   enabled: true
