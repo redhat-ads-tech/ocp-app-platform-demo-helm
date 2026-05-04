@@ -35,9 +35,10 @@ spec:
                 - chat
           mcpServers:
             - name: rhdh-mcp
-              url: http://backstage-developer-hub.rhdh.svc.cluster.local/api/mcp-actions/v1
-              headers:
-                Authorization: {{ printf "\"Bearer {{ .backend_secret }}\"" }}
+              url: http://backstage-developer-hub.rhdh.svc.cluster.local/api/mcp-actions/v1/sse
+              requestOptions:
+                headers:
+                  Authorization: {{ printf "\"Bearer {{ .backend_secret }}\"" }}
   data:
     - secretKey: api_key
       remoteRef:
@@ -208,14 +209,11 @@ spec:
             "lastReleaseNotesSeen": "2.1.110",
             "officialMarketplaceAutoInstallAttempted": true,
             "officialMarketplaceAutoInstalled": true,
-            "autoUpdatesProtectedForNative": true
-          }
-        settings.json: |
-          {
+            "autoUpdatesProtectedForNative": true,
             "mcpServers": {
               "rhdh-mcp": {
-                "type": "sse",
-                "url": "http://backstage-developer-hub.rhdh.svc.cluster.local/api/mcp-actions/v1/sse",
+                "type": "http",
+                "url": "http://backstage-developer-hub.rhdh.svc.cluster.local/api/mcp-actions/v1",
                 "headers": {
                   "Authorization": {{ printf "\"Bearer {{ .backend_secret }}\"" }}
                 }
