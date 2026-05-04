@@ -33,6 +33,11 @@ spec:
               apiBase: "{{ printf "{{ .base_url }}" }}"
               roles:
                 - chat
+          mcpServers:
+            - name: rhdh-mcp
+              url: http://backstage-developer-hub.rhdh.svc.cluster.local/api/mcp-actions/v1
+              headers:
+                Authorization: {{ printf "\"Bearer {{ .backend_secret }}\"" }}
   data:
     - secretKey: api_key
       remoteRef:
@@ -42,6 +47,10 @@ spec:
       remoteRef:
         key: secrets/litellm/credentials
         property: base_url
+    - secretKey: backend_secret
+      remoteRef:
+        key: secrets/rhdh/backend-secret
+        property: value
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
@@ -201,11 +210,27 @@ spec:
             "officialMarketplaceAutoInstalled": true,
             "autoUpdatesProtectedForNative": true
           }
+        settings.json: |
+          {
+            "mcpServers": {
+              "rhdh-mcp": {
+                "type": "sse",
+                "url": "http://backstage-developer-hub.rhdh.svc.cluster.local/api/mcp-actions/v1/sse",
+                "headers": {
+                  "Authorization": {{ printf "\"Bearer {{ .backend_secret }}\"" }}
+                }
+              }
+            }
+          }
   data:
     - secretKey: api_key
       remoteRef:
         key: secrets/litellm/credentials
         property: api_key
+    - secretKey: backend_secret
+      remoteRef:
+        key: secrets/rhdh/backend-secret
+        property: value
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
