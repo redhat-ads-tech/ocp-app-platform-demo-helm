@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jira-stub.name" . }}
+  labels:
+    {{- include "jira-stub.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: {{ include "jira-stub.name" . }}
+  template:
+    metadata:
+      labels:
+        name: {{ include "jira-stub.name" . }}
+        {{- include "jira-stub.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "jira-stub.name" . }}
+          image: {{ .Values.image }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10

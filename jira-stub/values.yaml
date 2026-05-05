@@ -1,0 +1,13 @@
+nameOverride: ""
+
+image: ghcr.io/redhat-ads-tech/rhdh-jira-stub:latest
+replicas: 1
+port: 8080
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

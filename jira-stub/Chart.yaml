@@ -1,0 +1,5 @@
+apiVersion: v2
+name: jira-stub
+description: A lightweight Jira REST API stub for RHDH Scorecards
+type: application
+version: 0.1.0
