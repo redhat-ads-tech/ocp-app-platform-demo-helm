@@ -124,6 +124,7 @@ data:
             - 'vault kv put kv/secrets/common/password value={{ $.Values.secrets.common.password }}'
             - 'vault kv put kv/secrets/sonarqube/admin-password value={{ $.Values.secrets.sonarqube.adminPassword | default $.Values.secrets.common.password }}'
             - 'vault kv put kv/secrets/rhdh/backend-secret value={{ "{{" }} lookup("ansible.builtin.password", "/dev/null", chars=["ascii_letters", "digits"], length=32) {{ "}}" }}'
+            - 'vault kv put kv/secrets/rhdh/mcp-secret value={{ "{{" }} lookup("ansible.builtin.password", "/dev/null", chars=["ascii_letters", "digits"], length=32) {{ "}}" }}'
 {{- if $.Values.secrets.kafka.userPassword }}
             - 'vault kv put kv/secrets/kafka/user-password value={{ $.Values.secrets.kafka.userPassword }}'
 {{- end }}

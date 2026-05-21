@@ -2,6 +2,9 @@ nameOverride: ""
 
 adminPassword: ""
 
+vault:
+  namespace: vault
+
 sonarqube:
   image: quay.io/kenmoini/sonarqube:34b8fd8
   replicas: 1

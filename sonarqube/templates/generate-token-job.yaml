@@ -1,0 +1,71 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sonarqube-generate-token
+  labels:
+    {{- include "sonarqube.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "30"
+    helm.sh/hook-delete-policy: hook-succeeded
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        {{- include "sonarqube.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: vault-token-writer
+      restartPolicy: OnFailure
+      containers:
+        - name: generate-token
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          env:
+            - name: VAULT_NAMESPACE
+              value: {{ .Values.vault.namespace | quote }}
+            - name: SONARQUBE_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sonarqube-admin
+                  key: password
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              SONAR_URL="http://sonarqube:{{ .Values.sonarqube.port }}"
+              SONAR_AUTH="admin:${SONARQUBE_ADMIN_PASSWORD}"
+              TOKEN_NAME="rhdh-integration"
+
+              echo "Waiting for SonarQube to be ready..."
+              until curl -sf "${SONAR_URL}/api/system/status" | grep -q '"status":"UP"'; do
+                sleep 5
+              done
+
+              echo "Verifying credentials..."
+              until curl -sf -u "${SONAR_AUTH}" "${SONAR_URL}/api/system/status" > /dev/null; do
+                echo "Waiting for admin password to be set..."
+                sleep 5
+              done
+
+              # Revoke existing token if present so we can regenerate
+              curl -sf -u "${SONAR_AUTH}" \
+                -X POST "${SONAR_URL}/api/user_tokens/revoke" \
+                -d "name=${TOKEN_NAME}&login=admin" || true
+
+              echo "Generating user token..."
+              RESPONSE=$(curl -sf -u "${SONAR_AUTH}" \
+                -X POST "${SONAR_URL}/api/user_tokens/generate" \
+                -d "name=${TOKEN_NAME}&login=admin")
+
+              TOKEN=$(echo "${RESPONSE}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+              if [ -z "${TOKEN}" ]; then
+                echo "ERROR: Failed to generate token"
+                echo "Response: ${RESPONSE}"
+                exit 1
+              fi
+
+              echo "Storing token in Vault..."
+              oc exec vault-0 -n "${VAULT_NAMESPACE}" -- \
+                vault kv put kv/secrets/sonarqube/token "value=${TOKEN}"
+
+              echo "SonarQube token generated and stored in Vault"

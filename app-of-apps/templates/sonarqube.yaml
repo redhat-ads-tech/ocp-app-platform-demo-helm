@@ -16,4 +16,6 @@ spec:
           value: {{ .Values.common.password | quote }}
         - name: postgresql.password
           value: {{ .Values.common.password | quote }}
+        - name: vault.namespace
+          value: {{ .Values.vault.namespace | quote }}
 {{ include "app-of-apps.syncPolicy" . | indent 2 }}
