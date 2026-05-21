@@ -48,6 +48,8 @@ spec:
           host: {{ .Values.developerHub.config.keycloak.host }}
           realm: {{ .Values.developerHub.config.keycloak.realm }}
           loginRealm: {{ .Values.developerHub.config.keycloak.loginRealm }}
+        sonarqube:
+          host: sonarqube-sonarqube.{{ .Values.cluster.subdomain }}
         cluster:
           subdomain: {{ .Values.cluster.subdomain }}
         devMode: {{ eq .Values.gitops.targetRevision "dev" }}
