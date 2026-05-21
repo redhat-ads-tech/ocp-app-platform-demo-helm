@@ -13,10 +13,10 @@ spec:
     helm:
       valuesObject:
         operator:
-          source: {{ include "app-of-apps.operatorSource" . }}
-          {{- if .Values.catalogSource.enabled }}
-          startingCSV: ""
-          {{- end }}
+          # Uses the live catalog instead of the pinned snapshot because
+          # fast-1.9 is not available in the snapshot image.
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
         vault:
           namespace: {{ .Values.vault.namespace }}
           name: {{ .Values.vault.name }}
