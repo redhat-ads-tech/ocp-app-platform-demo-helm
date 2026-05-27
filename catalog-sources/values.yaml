@@ -5,3 +5,11 @@ catalogSources:
     namespace: openshift-marketplace
     displayName: "Red Hat Operators (Snapshot)"
     publisher: "Red Hat Demo Platform"
+    # Large catalog images (~1.6GB) can take several minutes to load.
+    # The default 1s startup probe timeout causes crash loops.
+    # These values give the pod up to 5 minutes (30 * 10s) to become ready.
+    grpcPodConfig:
+      startupProbe:
+        timeoutSeconds: 5
+        failureThreshold: 30
+        periodSeconds: 10
