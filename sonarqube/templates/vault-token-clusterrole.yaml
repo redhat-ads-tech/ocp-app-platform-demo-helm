@@ -6,9 +6,7 @@ metadata:
   labels:
     {{- include "sonarqube.labels" . | nindent 4 }}
   annotations:
-    helm.sh/hook: post-install
-    helm.sh/hook-weight: "25"
-    helm.sh/hook-delete-policy: hook-succeeded
+    argocd.argoproj.io/sync-wave: "0"
 rules:
   - apiGroups: [""]
     resources: ["pods", "pods/exec"]
