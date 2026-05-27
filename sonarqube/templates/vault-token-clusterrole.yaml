@@ -11,3 +11,6 @@ rules:
   - apiGroups: [""]
     resources: ["pods", "pods/exec"]
     verbs: ["get", "create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]

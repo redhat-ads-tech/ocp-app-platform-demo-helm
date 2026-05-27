@@ -64,8 +64,20 @@ spec:
                 exit 1
               fi
 
+              echo "Retrieving Vault token..."
+              VAULT_TOKEN=$(oc get secret vault-token -n "${VAULT_NAMESPACE}" -o jsonpath='{.data.token}' | base64 -d)
+              if [ -z "${VAULT_TOKEN}" ]; then
+                echo "ERROR: Failed to retrieve Vault token"
+                exit 1
+              fi
+
               echo "Storing token in Vault..."
               oc exec vault-0 -n "${VAULT_NAMESPACE}" -- \
-                vault kv put kv/secrets/sonarqube/token "value=${TOKEN}"
+                sh -c "VAULT_TOKEN='${VAULT_TOKEN}' vault kv put kv/secrets/sonarqube/token value='${TOKEN}'"
+
+              if [ $? -ne 0 ]; then
+                echo "ERROR: Failed to store token in Vault"
+                exit 1
+              fi
 
               echo "SonarQube token generated and stored in Vault"
