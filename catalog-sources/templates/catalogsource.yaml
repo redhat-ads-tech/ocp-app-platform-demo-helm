@@ -10,7 +10,6 @@ spec:
   image: {{ .image }}:{{ .tag }}
   displayName: {{ .displayName | quote }}
   publisher: {{ .publisher | quote }}
-  {{- /* Override gRPC pod config (e.g. memoryTarget) for large catalog images */}}
   {{- with .grpcPodConfig }}
   grpcPodConfig:
     {{- toYaml . | nindent 4 }}
