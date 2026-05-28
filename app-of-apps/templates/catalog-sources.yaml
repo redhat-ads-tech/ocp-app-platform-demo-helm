@@ -20,6 +20,10 @@ spec:
             namespace: {{ .Values.catalogSource.namespace }}
             displayName: {{ .Values.catalogSource.displayName | quote }}
             publisher: {{ .Values.catalogSource.publisher | quote }}
+            {{- with .Values.catalogSource.grpcPodConfig }}
+            grpcPodConfig:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
   syncPolicy:
     automated:
       prune: true

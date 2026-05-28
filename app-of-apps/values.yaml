@@ -16,6 +16,8 @@ catalogSource:
   tag: v4.20_2026_02_11
   displayName: "Red Hat Operators (Snapshot)"
   publisher: "Red Hat Demo Platform"
+  grpcPodConfig:
+    memoryTarget: 256Mi
 
 cluster:
   subdomain: ""
