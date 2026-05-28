@@ -17,7 +17,7 @@ catalogSource:
   displayName: "Red Hat Operators (Snapshot)"
   publisher: "Red Hat Demo Platform"
   grpcPodConfig:
-    memoryTarget: 256Mi
+    memoryTarget: 512Mi
 
 cluster:
   subdomain: ""

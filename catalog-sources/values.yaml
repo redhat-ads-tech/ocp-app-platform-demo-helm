@@ -9,4 +9,4 @@ catalogSources:
     # (~1.6GB). The pod OOM-thrashes and can't respond to startup probes.
     # Setting memoryTarget gives the server enough headroom to load the catalog.
     grpcPodConfig:
-      memoryTarget: 256Mi
+      memoryTarget: 512Mi
