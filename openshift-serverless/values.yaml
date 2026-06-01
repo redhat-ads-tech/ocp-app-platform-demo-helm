@@ -6,7 +6,7 @@ serverless:
   sourceNamespace: openshift-marketplace
 
 serverlessLogic:
-  channel: alpha
+  channel: stable
   installPlanApproval: Automatic
   name: logic-operator
   source: redhat-operators
