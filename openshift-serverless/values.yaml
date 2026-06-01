@@ -1,0 +1,13 @@
+serverless:
+  channel: stable
+  installPlanApproval: Automatic
+  name: serverless-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+serverlessLogic:
+  channel: alpha
+  installPlanApproval: Automatic
+  name: logic-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: openshift-serverless
+description: OpenShift Serverless and Serverless Logic operator subscriptions
+type: application
+version: 0.1.0
