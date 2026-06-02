@@ -74,11 +74,38 @@ spec:
                   echo "Initializing Vault for the first time..."
                   oc exec {{ include "vault.name" . }}-0 --namespace={{ .Release.Namespace }} -- vault operator init -format=yaml > /tmp/vault-auto-unseal-keys.txt
 
-                  echo "Copying unseal keys to Vault pod..."
-                  cat /tmp/vault-auto-unseal-keys.txt | oc exec -i -n {{ .Release.Namespace }} {{ include "vault.name" . }}-0 -c {{ include "vault.name" . }} "--" sh -c "cat > /vault/data/vault-auto-unseal-keys.txt"
+                  if [ ! -s /tmp/vault-auto-unseal-keys.txt ]; then
+                    echo "ERROR: vault operator init produced no output"
+                    exit 1
+                  fi
 
-                  echo "Copying unseal script to Vault pod..."
-                  cat /vault-unseal-config/unseal.sh | oc exec -i -n {{ .Release.Namespace }} {{ include "vault.name" . }}-0 -c {{ include "vault.name" . }} "--" sh -c "cat > /vault/data/unseal.sh"
+                  # Copy keys and unseal script into vault-0's PVC with retry
+                  for attempt in 1 2 3 4 5; do
+                    echo "Copying unseal keys to Vault pod (attempt $attempt)..."
+                    cat /tmp/vault-auto-unseal-keys.txt | oc exec -i -n {{ .Release.Namespace }} {{ include "vault.name" . }}-0 -c {{ include "vault.name" . }} "--" sh -c "cat > /vault/data/vault-auto-unseal-keys.txt"
+
+                    echo "Copying unseal script to Vault pod..."
+                    cat /vault-unseal-config/unseal.sh | oc exec -i -n {{ .Release.Namespace }} {{ include "vault.name" . }}-0 -c {{ include "vault.name" . }} "--" sh -c "cat > /vault/data/unseal.sh"
+
+                    # Verify the keys file landed
+                    set +e
+                    oc exec {{ include "vault.name" . }}-0 -n {{ .Release.Namespace }} -- test -s /vault/data/vault-auto-unseal-keys.txt
+                    COPY_OK=$?
+                    set -e
+
+                    if [ $COPY_OK -eq 0 ]; then
+                      echo "Unseal keys successfully written to vault-0"
+                      break
+                    fi
+
+                    echo "Copy verification failed, retrying in 5s..."
+                    sleep 5
+                  done
+
+                  if [ $COPY_OK -ne 0 ]; then
+                    echo "ERROR: Failed to copy unseal keys after 5 attempts"
+                    exit 1
+                  fi
 
                   echo "Unsealing Vault..."
                   oc exec {{ include "vault.name" . }}-0 --namespace={{ .Release.Namespace }} -- /bin/sh /vault/data/unseal.sh
