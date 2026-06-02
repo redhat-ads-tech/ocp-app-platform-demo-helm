@@ -1,0 +1,46 @@
+apiVersion: v1
+data:
+  application.properties: |
+    rhdh_url=${BACKSTAGE_BACKEND_URL}
+    backend_token=${BACKSTAGE_BACKEND_BEARER_TOKEN}
+    gitlab_url=${GITLAB_URL}
+    gitlab_access_token=${GITLAB_TOKEN}
+
+    # Backstage Notifications service
+    quarkus.rest-client.notifications_openapi_yaml.url=${rhdh_url}
+    quarkus.openapi-generator.notifications_openapi_yaml.auth.BearerToken.bearer-token=${backend_token}
+
+    # Backstage Scaffolder service
+    quarkus.rest-client.scaffolder_openapi_yaml.url=${rhdh_url}
+    quarkus.openapi-generator.scaffolder_openapi_yaml.auth.BearerToken.bearer-token=${backend_token}
+    swt_ref=${SWT_REF}
+
+    # Gitlab
+    quarkus.rest-client.gitlab_openapi_yaml.url=${gitlab_url}
+    quarkus.openapi-generator.gitlab_openapi_yaml.auth.access_token_header.api-key=${gitlab_access_token}
+
+    # quarkus.tls.trust-all=true
+
+    quarkus.log.category."org.apache.http".level=INFO
+    quarkus.log.level=INFO
+
+    # Kogito Persistence Configuration
+    kogito.persistence.type=jdbc
+    quarkus.datasource.db-kind=postgresql
+
+    # Flyway Configuration
+    kie.flyway.enabled=true
+    quarkus.flyway.enabled=true
+    quarkus.flyway.migrate-at-start=true
+    quarkus.flyway.baseline-on-migrate=true
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: create-ocp-namespace-swt
+    app.kubernetes.io/component: serverless-workflow
+    app.kubernetes.io/managed-by: sonataflow-operator
+    app.kubernetes.io/name: create-ocp-namespace-swt
+    sonataflow.org/workflow-app: create-ocp-namespace-swt
+    sonataflow.org/workflow-namespace: ""
+  name: create-ocp-namespace-swt-props

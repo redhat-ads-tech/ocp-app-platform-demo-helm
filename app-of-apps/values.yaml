@@ -274,3 +274,7 @@ orchestrator:
     url: ""
   gitlab:
     url: ""
+
+orchestratorWorkflows:
+  name: orchestrator-workflows
+  namespace: rhdh

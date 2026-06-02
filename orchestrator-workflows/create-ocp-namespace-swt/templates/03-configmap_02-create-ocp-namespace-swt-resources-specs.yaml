@@ -1,0 +1,1214 @@
+apiVersion: v1
+data:
+  gitlab-openapi.yaml: |
+    openapi: 3.0.1
+    info:
+      title: GitLab API
+      version: v4
+    servers:
+      - url: /
+    security:
+      - access_token_header: []
+    tags:
+      - name: projects
+        description: Operations related to projects
+      - name: issues
+        description: Operations related to issues
+    paths:
+      /api/v4/projects:
+        get:
+          tags:
+            - projects
+          description: Get a list of visible projects for authenticated user
+          operationId: getApiV4Projects
+          parameters:
+            - name: order_by
+              in: query
+              description: Return projects ordered by field. storage_size, repository_size,
+                wiki_size, packages_size are only available to admins. Similarity is
+                available when searching and is limited to projects the user has
+                access to.
+              schema:
+                type: string
+                default: created_at
+                enum:
+                  - id
+                  - name
+                  - path
+                  - created_at
+                  - updated_at
+                  - last_activity_at
+                  - similarity
+                  - star_count
+                  - storage_size
+                  - repository_size
+                  - wiki_size
+                  - packages_size
+            - name: sort
+              in: query
+              description: Return projects sorted in ascending and descending order
+              schema:
+                type: string
+                default: desc
+                enum:
+                  - asc
+                  - desc
+            - name: archived
+              in: query
+              description: Limit by archived status
+              schema:
+                type: boolean
+            - name: visibility
+              in: query
+              description: Limit by visibility
+              schema:
+                type: string
+                enum:
+                  - private
+                  - internal
+                  - public
+            - name: search
+              in: query
+              description: Return list of projects matching the search criteria
+              schema:
+                type: string
+            - name: search_namespaces
+              in: query
+              description: Include ancestor namespaces when matching search criteria
+              schema:
+                type: boolean
+            - name: owned
+              in: query
+              description: Limit by owned by authenticated user
+              schema:
+                type: boolean
+                default: false
+            - name: starred
+              in: query
+              description: Limit by starred status
+              schema:
+                type: boolean
+                default: false
+            - name: imported
+              in: query
+              description: Limit by imported by authenticated user
+              schema:
+                type: boolean
+                default: false
+            - name: membership
+              in: query
+              description: Limit by projects that the current user is a member of
+              schema:
+                type: boolean
+                default: false
+            - name: with_issues_enabled
+              in: query
+              description: Limit by enabled issues feature
+              schema:
+                type: boolean
+                default: false
+            - name: with_merge_requests_enabled
+              in: query
+              description: Limit by enabled merge requests feature
+              schema:
+                type: boolean
+                default: false
+            - name: with_programming_language
+              in: query
+              description: Limit to repositories which use the given programming language
+              schema:
+                type: string
+            - name: min_access_level
+              in: query
+              description: Limit by minimum access level of authenticated user
+              schema:
+                type: integer
+                format: int32
+                enum:
+                  - 10
+                  - 15
+                  - 20
+                  - 30
+                  - 40
+                  - 50
+            - name: id_after
+              in: query
+              description: Limit results to projects with IDs greater than the specified ID
+              schema:
+                type: integer
+                format: int32
+            - name: id_before
+              in: query
+              description: Limit results to projects with IDs less than the specified ID
+              schema:
+                type: integer
+                format: int32
+            - name: last_activity_after
+              in: query
+              description: "Limit results to projects with last_activity after specified time.
+                Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
+              schema:
+                type: string
+                format: date-time
+            - name: last_activity_before
+              in: query
+              description: "Limit results to projects with last_activity before specified
+                time. Format: ISO 8601 YYYY-MM-DDTHH:MM:SSZ"
+              schema:
+                type: string
+                format: date-time
+            - name: repository_storage
+              in: query
+              description: Which storage shard the repository is on. Available only to admins
+              schema:
+                type: string
+            - name: topic
+              in: query
+              description: Comma-separated list of topics. Limit results to projects having
+                all topics
+              style: form
+              explode: false
+              schema:
+                type: array
+                items:
+                  type: string
+            - name: topic_id
+              in: query
+              description: Limit results to projects with the assigned topic given by the
+                topic ID
+              schema:
+                type: integer
+                format: int32
+            - name: updated_before
+              in: query
+              description: "Return projects updated before the specified datetime. Format: ISO
+                8601 YYYY-MM-DDTHH:MM:SSZ"
+              schema:
+                type: string
+                format: date-time
+            - name: updated_after
+              in: query
+              description: "Return projects updated after the specified datetime. Format: ISO
+                8601 YYYY-MM-DDTHH:MM:SSZ"
+              schema:
+                type: string
+                format: date-time
+            - name: include_pending_delete
+              in: query
+              description: Include projects in pending delete state. Can only be set by admins
+              schema:
+                type: boolean
+            - name: wiki_checksum_failed
+              in: query
+              description: Limit by projects where wiki checksum is failed
+              schema:
+                type: boolean
+                default: false
+            - name: repository_checksum_failed
+              in: query
+              description: Limit by projects where repository checksum is failed
+              schema:
+                type: boolean
+                default: false
+            - name: include_hidden
+              in: query
+              description: Include hidden projects. Can only be set by admins
+              schema:
+                type: boolean
+                default: false
+            - name: marked_for_deletion_on
+              in: query
+              description: Date when the project was marked for deletion
+              schema:
+                type: string
+                format: date
+            - name: page
+              in: query
+              description: Current page number
+              schema:
+                type: integer
+                format: int32
+                default: 1
+            - name: per_page
+              in: query
+              description: Number of items per page
+              schema:
+                type: integer
+                format: int32
+                default: 20
+            - name: simple
+              in: query
+              description: Return only the ID, URL, name, and path of each project
+              schema:
+                type: boolean
+                default: false
+            - name: statistics
+              in: query
+              description: Include project statistics
+              schema:
+                type: boolean
+                default: false
+            - name: with_custom_attributes
+              in: query
+              description: Include custom attributes in the response
+              schema:
+                type: boolean
+                default: false
+          responses:
+            "200":
+              description: Get a list of visible projects for authenticated user
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/API_Entities_BasicProjectDetails"
+            "400":
+              description: Bad request
+              content: {}
+      "/api/v4/projects/{id}/issues/{issue_iid}":
+        get:
+          tags:
+            - issues
+          description: Get a single project issue
+          operationId: getApiV4ProjectsIdIssuesIssueId
+          parameters:
+            - name: id
+              in: path
+              description: The ID or URL-encoded path of the project owned by the
+                authenticated user
+              required: true
+              schema:
+                type: string
+            - name: issue_iid
+              in: path
+              description: The internal ID of a project’s issue
+              required: true
+              schema:
+                type: integer
+                format: int32
+          responses:
+            "200":
+              description: Get a single project issue
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/API_Entities_Issue"
+            "400":
+              description: Bad request
+              content: {}
+        put:
+          tags:
+            - issues
+          description: Edit a single project issue
+          operationId: putApiV4ProjectsIdIssuesIssueId
+          parameters:
+            - name: id
+              in: path
+              description: The ID or URL-encoded path of the project owned by the
+                authenticated user
+              required: true
+              schema:
+                type: string
+            - name: issue_iid
+              in: path
+              description: The internal ID of a project’s issue
+              required: true
+              schema:
+                type: integer
+                format: int32
+            - name: state_event
+              in: query
+              schema:
+                type: string
+          responses:
+            "200":
+              description: Issue created
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/API_Entities_Issue"
+      "/api/v4/projects/{id}/issues":
+        post:
+          tags:
+            - issues
+          description: Creates a new project issue
+          operationId: postApiV4ProjectsIdIssues
+          parameters:
+            - name: id
+              in: path
+              description: The ID or URL-encoded path of the project owned by the
+                authenticated user
+              required: true
+              schema:
+                type: string
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/postApiV4ProjectsIdIssues"
+            required: true
+          responses:
+            "201":
+              description: Issue created
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/API_Entities_Issue"
+          x-codegen-request-body-name: postApiV4ProjectsIdIssues
+    components:
+      schemas:
+        API_Entities_CustomAttribute:
+          type: object
+          properties:
+            key:
+              type: string
+              example: foo
+            value:
+              type: string
+              example: bar
+          description: API_Entities_CustomAttribute model
+        API_Entities_LicenseBasic:
+          type: object
+          properties:
+            key:
+              type: string
+              example: gpl-3.0
+            name:
+              type: string
+              example: GNU General Public License v3.0
+            nickname:
+              type: string
+              example: GNU GPLv3
+            html_url:
+              type: string
+              example: http://choosealicense.com/licenses/gpl-3.0
+            source_url:
+              type: string
+        API_Entities_NamespaceBasic:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int32
+              example: 2
+            name:
+              type: string
+              example: project
+            path:
+              type: string
+              example: my_project
+            kind:
+              type: string
+              example: project
+            full_path:
+              type: string
+              example: group/my_project
+            parent_id:
+              type: integer
+              format: int32
+              example: 1
+            avatar_url:
+              type: string
+              example: https://example.com/avatar/12345
+            web_url:
+              type: string
+              example: https://example.com/group/my_project
+        API_Entities_BasicProjectDetails:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int32
+              example: 1
+            description:
+              type: string
+              example: desc
+            name:
+              type: string
+              example: project1
+            name_with_namespace:
+              type: string
+              example: John Doe / project1
+            path:
+              type: string
+              example: project1
+            path_with_namespace:
+              type: string
+              example: namespace1/project1
+            created_at:
+              type: string
+              format: date-time
+              example: 2020-05-07T04:27:17.016Z
+            default_branch:
+              type: string
+              example: main
+            tag_list:
+              type: array
+              example: tag
+              items:
+                type: string
+            topics:
+              type: array
+              example: topic
+              items:
+                type: string
+            ssh_url_to_repo:
+              type: string
+              example: git@gitlab.example.com:gitlab/gitlab.git
+            http_url_to_repo:
+              type: string
+              example: https://gitlab.example.com/gitlab/gitlab.git
+            web_url:
+              type: string
+              example: https://gitlab.example.com/gitlab/gitlab
+            readme_url:
+              type: string
+              example: https://gitlab.example.com/gitlab/gitlab/blob/master/README.md
+            forks_count:
+              type: integer
+              format: int32
+              example: 1
+            license_url:
+              type: string
+              example: https://gitlab.example.com/gitlab/gitlab/blob/master/LICENCE
+            license:
+              $ref: "#/components/schemas/API_Entities_LicenseBasic"
+            avatar_url:
+              type: string
+              example: http://example.com/uploads/project/avatar/3/uploads/avatar.png
+            star_count:
+              type: integer
+              format: int32
+              example: 1
+            last_activity_at:
+              type: string
+              format: date-time
+              example: 2013-09-30T13:46:02Z
+            namespace:
+              $ref: "#/components/schemas/API_Entities_NamespaceBasic"
+            custom_attributes:
+              $ref: "#/components/schemas/API_Entities_CustomAttribute"
+            repository_storage:
+              type: string
+              example: default
+          description: API_Entities_BasicProjectDetails model
+        API_Entities_Issue:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int32
+              example: 84
+            iid:
+              type: integer
+              format: int32
+              example: 14
+            project_id:
+              type: integer
+              format: int32
+              example: 4
+            title:
+              type: string
+              example: Impedit et ut et dolores vero provident ullam est
+            description:
+              type: string
+              example: Repellendus impedit et vel velit dignissimos.
+            state:
+              type: string
+              example: closed
+            created_at:
+              type: string
+              format: date-time
+              example: 2022-08-17T12:46:35.053Z
+            updated_at:
+              type: string
+              format: date-time
+              example: 2022-11-14T17:22:01.47Z
+            closed_at:
+              type: string
+              format: date-time
+              example: 2022-11-15T08:30:55.232Z
+            closed_by:
+              $ref: "#/components/schemas/API_Entities_UserBasic"
+            labels:
+              type: array
+              example: bug
+              items:
+                type: string
+            milestone:
+              $ref: "#/components/schemas/API_Entities_Milestone"
+            assignees:
+              type: array
+              items:
+                $ref: "#/components/schemas/API_Entities_UserBasic"
+            author:
+              $ref: "#/components/schemas/API_Entities_UserBasic"
+            type:
+              type: string
+              description: One of [ISSUE, INCIDENT, TEST_CASE, REQUIREMENT, TASK, TICKET]
+              example: ISSUE
+            assignee:
+              $ref: "#/components/schemas/API_Entities_UserBasic"
+            user_notes_count:
+              type: string
+            merge_requests_count:
+              type: string
+            upvotes:
+              type: string
+            downvotes:
+              type: string
+            due_date:
+              type: string
+              format: date
+              example: 2022-11-20
+            confidential:
+              type: boolean
+            discussion_locked:
+              type: boolean
+            issue_type:
+              type: string
+              example: issue
+            web_url:
+              type: string
+              example: http://example.com/example/example/issues/14
+            time_stats:
+              $ref: "#/components/schemas/API_Entities_IssuableTimeStats"
+            task_completion_status:
+              $ref: "#/components/schemas/API_Entities_TaskCompletionStatus"
+            has_tasks:
+              type: string
+            task_status:
+              type: string
+            _links:
+              type: object
+              properties:
+                self:
+                  type: string
+                notes:
+                  type: string
+                award_emoji:
+                  type: string
+                project:
+                  type: string
+                closed_as_duplicate_of:
+                  type: string
+            references:
+              $ref: "#/components/schemas/API_Entities_IssuableReferences"
+            severity:
+              type: string
+              description: One of [UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL]
+            subscribed:
+              type: string
+            moved_to_id:
+              type: string
+            imported:
+              type: string
+            imported_from:
+              type: string
+              example: github
+            service_desk_reply_to:
+              type: string
+          description: API_Entities_Issue model
+        API_Entities_UserBasic:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int32
+              example: 1
+            username:
+              type: string
+              example: admin
+            name:
+              type: string
+              example: Administrator
+            state:
+              type: string
+              example: active
+            locked:
+              type: boolean
+            avatar_url:
+              type: string
+              example: https://gravatar.com/avatar/1
+            avatar_path:
+              type: string
+              example: /user/avatar/28/The-Big-Lebowski-400-400.png
+            custom_attributes:
+              type: array
+              items:
+                $ref: "#/components/schemas/API_Entities_CustomAttribute"
+            web_url:
+              type: string
+              example: https://gitlab.example.com/root
+          description: API_Entities_UserBasic model
+        API_Entities_Milestone:
+          type: object
+          properties:
+            id:
+              type: string
+            iid:
+              type: string
+            project_id:
+              type: string
+            group_id:
+              type: string
+            title:
+              type: string
+            description:
+              type: string
+            state:
+              type: string
+            created_at:
+              type: string
+            updated_at:
+              type: string
+            due_date:
+              type: string
+            start_date:
+              type: string
+            expired:
+              type: string
+            web_url:
+              type: string
+        API_Entities_IssuableTimeStats:
+          type: object
+          properties:
+            time_estimate:
+              type: integer
+              format: int32
+              example: 12600
+            total_time_spent:
+              type: integer
+              format: int32
+              example: 3600
+            human_time_estimate:
+              type: string
+              example: 3h 30m
+            human_total_time_spent:
+              type: string
+              example: 1h
+          description: API_Entities_IssuableTimeStats model
+        API_Entities_IssuableReferences:
+          type: object
+          properties:
+            short:
+              type: string
+              example: "&6"
+            relative:
+              type: string
+              example: "&6"
+            full:
+              type: string
+              example: test&6
+        postApiV4ProjectsIdIssues:
+          type: object
+          properties:
+            assignee_id:
+              type: integer
+              description: Assignee user ID.
+              format: int32
+            assignee_ids:
+              type: array
+              description: The IDs of the users to assign theissue to, as a comma-separated
+                list. Set to 0 or provide an empty value to unassign all assignees.
+              items:
+                type: integer
+                format: int32
+            confidential:
+              type: boolean
+            created_at:
+              type: string
+              format: date-time
+            description:
+              type: string
+            discussion_to_resolve:
+              type: string
+            due_date:
+              type: string
+              format: date
+            issue_type:
+              type: string
+            labels:
+              type: array
+              items:
+                type: string
+            merge_request_to_resolve_discussions_of:
+              type: integer
+              format: int32
+            milestone_id:
+              type: integer
+              format: int32
+            title:
+              type: string
+        API_Entities_TaskCompletionStatus:
+          type: object
+          properties:
+            count:
+              type: integer
+              format: int32
+            completed_count:
+              type: integer
+              format: int32
+      securitySchemes:
+        access_token_header:
+          type: apiKey
+          name: PRIVATE-TOKEN
+          in: header
+    x-original-swagger-version: "2.0"
+  notifications-openapi.yaml: |
+    openapi: 3.0.3
+    info:
+      title: Notifications Plugin - OpenAPI Specs
+      description: |-
+        Notifications Plugin - OpenAPI Specs
+      version: 1.0.0
+    tags:
+      - name: notifications
+        description: notifications plugin
+    servers:
+      - url: /
+    security:
+      - BearerToken: []
+    paths:
+      /api/notifications:
+        get:
+          tags:
+            - "notifications"
+          summary: Get user's notifications
+          description: Get user's notifications
+          operationId: getNotifications
+          responses:
+            "200":
+              description: Successful operation
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/GetNotifications"
+          security:
+            - BearerToken: []
+        post:
+          tags:
+            - "notifications"
+          summary: Create a notification
+          description: Create a notification
+          operationId: createNotification
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/CreateBody"
+          responses:
+            "200":
+              description: Successful operation
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Notifications"
+          security:
+            - BearerToken: []
+      /api/notifications/status:
+        get:
+          tags:
+            - "notifications"
+          summary: Get user's count of unread+read notifications
+          description: Get user's count of unread+read notifications
+          operationId: getStatus
+          responses:
+            "200":
+              description: Successful operation
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Count"
+          security:
+            - BearerToken: []
+      /api/notifications/update:
+        post:
+          tags:
+            - "notifications"
+          summary: Set read/unread notifications
+          description: Set read/unread notifications
+          operationId: setRead
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/SetReadRequest"
+          responses:
+            "200":
+              description: Successful operation
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Notifications"
+          security:
+            - BearerToken: []
+    components:
+      schemas:
+        NotificationPayload:
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+            link:
+              type: string
+            severity:
+              type: string
+              enum:
+                - "critical"
+                - "high"
+                - "normal"
+                - "low"
+            topic:
+              type: string
+            scope:
+              type: string
+            icon:
+              type: string
+          required: [title]
+        CreateBody:
+          properties:
+            recipients:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - "broadcast"
+                    - "entity"
+                entityRef:
+                  type: array
+                  items:
+                    type: string
+                excludeEntityRef:
+                  type: array
+                  items:
+                    type: string
+              required: ["type"]
+            payload:
+              $ref: "#/components/schemas/NotificationPayload"
+        Notification:
+          properties:
+            id:
+              type: string
+            user:
+              type: string
+              nullable: true
+            created:
+              type: string
+              format: date-time
+            saved:
+              type: string
+              format: date-time
+            read:
+              type: number
+            updated:
+              type: string
+              format: date-time
+            origin:
+              type: string
+            payload:
+              $ref: "#/components/schemas/NotificationPayload"
+          required: [id, user, created, origin, payload]
+        Notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        Count:
+          type: object
+          properties:
+            unread:
+              type: number
+            read:
+              type: number
+          required: [unread, read]
+        SetReadRequest:
+          type: object
+          properties:
+            ids:
+              type: array
+              items:
+                type: string
+              minItems: 1
+            read:
+              type: boolean
+          required: [ids, read]
+        GetNotifications:
+          type: object
+          properties:
+            totalCount:
+              type: number
+            notifications:
+              $ref: "#/components/schemas/Notifications"
+      securitySchemes:
+        BearerToken:
+          type: http
+          scheme: bearer
+          description: Bearer Token authentication
+  scaffolder-openapi.yaml: |
+    openapi: 3.0.3
+    info:
+      title: Scaffolder API
+      version: 1.0.0
+      description: API for managing scaffolding tasks and templates.
+    servers:
+      - url: /
+    security:
+      - BearerToken: []
+
+    paths:
+      /api/scaffolder/v2/templates/{namespace}/{kind}/{name}/parameter-schema:
+        get:
+          summary: Get Template Parameter Schema
+          operationId: getTemplateParameterSchema
+          security:
+            - bearerAuth: []
+          parameters:
+            - name: namespace
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: kind
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: name
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            "200":
+              description: Template parameter schema returned successfully
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Template"
+            "404":
+              description: Template not found
+            "500":
+              description: Internal server error
+
+      /api/scaffolder/v2/actions:
+        get:
+          summary: List Available Actions
+          operationId: listAvailableActions
+          security:
+            - bearerAuth: []
+          responses:
+            "200":
+              description: List of available actions
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        description:
+                          type: string
+                          description: A brief explanation of the action, its purpose, and how it is used.
+                        examples:
+                          type: array
+                          items:
+                            type: object
+                        schema:
+                          type: object
+            "500":
+              description: Internal server error
+
+      /api/scaffolder/v2/tasks:
+        post:
+          summary: Create a New Task
+          operationId: createTask
+          security:
+            - bearerAuth: []
+          requestBody:
+            description: Task creation parameters
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Task"
+          responses:
+            "201":
+              description: Task created successfully
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+            "400":
+              description: Bad request
+            "500":
+              description: Internal server error
+
+        get:
+          summary: List Tasks
+          operationId: listTasks
+          security:
+            - bearerAuth: []
+          parameters:
+            - name: createdBy
+              in: query
+              schema:
+                type: string
+            - name: status
+              in: query
+              schema:
+                type: string
+          responses:
+            "200":
+              description: List of tasks
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+            "400":
+              description: Bad request
+            "500":
+              description: Internal server error
+
+      /api/scaffolder/v2/tasks/{taskId}:
+        get:
+          summary: Get Task Details
+          operationId: getTaskDetails
+          security:
+            - bearerAuth: []
+          parameters:
+            - name: taskId
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            "200":
+              description: Task details retrieved successfully
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Task"
+            "404":
+              description: Task not found
+            "500":
+              description: Internal server error
+
+        patch:
+          summary: Update Task
+          operationId: updateTask
+          security:
+            - bearerAuth: []
+          parameters:
+            - name: taskId
+              in: path
+              required: true
+              schema:
+                type: string
+          requestBody:
+            description: Task update parameters
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Task"
+          responses:
+            "200":
+              description: Task updated successfully
+            "400":
+              description: Bad request
+            "404":
+              description: Task not found
+            "500":
+              description: Internal server error
+
+        delete:
+          summary: Delete Task
+          operationId: deleteTask
+          security:
+            - bearerAuth: []
+          parameters:
+            - name: taskId
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            "204":
+              description: Task deleted successfully
+            "404":
+              description: Task not found
+            "500":
+              description: Internal server error
+
+    components:
+      schemas:
+        Template:
+          type: object
+          properties:
+            title:
+              type: string
+              description: The title of the template, summarizing its purpose.
+            description:
+              type: string
+              description: A detailed explanation of what the template does, its intended use case, and any special considerations.
+            steps:
+              type: array
+              items:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: The title of the step, indicating its role in the template.
+                  description:
+                    type: string
+                    description: A description of what the step accomplishes and any relevant details for its execution.
+                  schema:
+                    type: object
+                    description: The schema that defines the parameters and data structure required for the step.
+
+        Task:
+          type: object
+          properties:
+            id:
+              type: string
+              description: A unique identifier for the task.
+            status:
+              type: string
+              description: The current status of the task (e.g., pending, in progress, completed).
+            createdBy:
+              type: string
+              description: The identifier of the user or system that created the task.
+            templateRef:
+              type: string
+              description: A reference to the template used to create the task.
+            values:
+              type: object
+              description: The specific values provided when the task was created, based on the template's schema.
+            secrets:
+              type: object
+              description: Sensitive data associated with the task, such as API keys or credentials, handled securely.
+            logs:
+              type: array
+              items:
+                type: string
+              description: A collection of log entries related to the task's execution, useful for debugging or auditing.
+
+      securitySchemes:
+        BearerToken:
+          type: http
+          scheme: bearer
+          description: Bearer Token authentication
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: 02-create-ocp-namespace-swt-resources-specs

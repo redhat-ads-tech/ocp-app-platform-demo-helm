@@ -1,0 +1,413 @@
+apiVersion: sonataflow.org/v1alpha08
+kind: SonataFlow
+metadata:
+  annotations:
+    sonataflow.org/description: Creating an OpenShift Namespace
+    sonataflow.org/expressionLang: jq
+    sonataflow.org/profile: gitops
+    sonataflow.org/version: "1.0"
+  creationTimestamp: null
+  labels:
+    app: create-ocp-namespace-swt
+    app.kubernetes.io/component: serverless-workflow
+    app.kubernetes.io/managed-by: sonataflow-operator
+    app.kubernetes.io/name: create-ocp-namespace-swt
+    sonataflow.org/workflow-app: create-ocp-namespace-swt
+    sonataflow.org/workflow-namespace: ""
+  name: create-ocp-namespace-swt
+spec:
+  flow:
+    dataInputSchema:
+      failOnValidationErrors: true
+      schema: schemas/create-ocp-namespace-swt-schema.json
+    functions:
+    - name: getProjectId
+      operation: specs/gitlab-openapi.yaml#getApiV4Projects
+      type: rest
+    - name: createIssue
+      operation: specs/gitlab-openapi.yaml#postApiV4ProjectsIdIssues
+      type: rest
+    - name: getIssue
+      operation: specs/gitlab-openapi.yaml#getApiV4ProjectsIdIssuesIssueId
+      type: rest
+    - name: closeIssue
+      operation: specs/gitlab-openapi.yaml#putApiV4ProjectsIdIssuesIssueId
+      type: rest
+    - name: createNotification
+      operation: specs/notifications-openapi.yaml#createNotification
+      type: rest
+    - name: launchSoftwareTemplate
+      operation: specs/scaffolder-openapi.yaml#createTask
+      type: rest
+    - name: getSoftwareTemplateTask
+      operation: specs/scaffolder-openapi.yaml#getTaskDetails
+      type: rest
+    - name: logInfo
+      operation: sysout:INFO
+      type: custom
+    - name: templateSuccessResult
+      operation: '{ "result": { "outputs":[ { "key":"Component in Catalog", "value":
+        $SECRET.rhdh_url + "/catalog/default/component/" + .component.repoName, "format":"link"
+        }] } }'
+      type: expression
+    - name: templateErrorResult
+      operation: '{ "result": { "completedWith":"error", "message": "Launching software
+        template failed.", "outputs":[] } }'
+      type: expression
+    - name: successResult
+      operation: '{ "result": { "message": "Namespace " + .namespace + " active",
+        "outputs":[] } }'
+      type: expression
+    - name: errorNamespaceNotActiveResult
+      operation: '{ "result": { "message": "Namespace " + .namespace + " not active"
+        } }'
+      type: expression
+    - name: errorDeniedResult
+      operation: '{ "result": { "message": "Creation of namespace " + .namespace +
+        " denied", "outputs":[ { "key":"Issue", "value": .createIssueResult.web_url,
+        "format":"link" }] } }'
+      type: expression
+    start:
+      stateName: NamespaceSizeSwitch
+    states:
+    - dataConditions:
+      - condition: .size == "small"
+        name: Namespace small
+        transition:
+          nextState: LaunchSoftwareTemplate
+      - condition: .size == "medium"
+        name: Namespace medium
+        transition:
+          nextState: LaunchSoftwareTemplate
+      - condition: .size == "large"
+        name: Namespace large
+        transition:
+          nextState: GetGitlabProjectId
+      defaultCondition:
+        transition:
+          nextState: LaunchSoftwareTemplate
+      name: NamespaceSizeSwitch
+      type: switch
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          toStateData: .getProjectIdResult
+          useResults: true
+        functionRef:
+          arguments:
+            search: orchestrator-approvals
+            simple: true
+          invoke: sync
+          refName: getProjectId
+        name: GetGitlabProjectId
+      name: GetGitlabProjectId
+      transition:
+        nextState: CreateIssue
+      type: operation
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          toStateData: .createIssueResult
+          useResults: true
+        functionRef:
+          arguments:
+            description: .reason
+            id: .getProjectIdResult[0].id|tostring
+            title: '"Request for large namespace " + .namespace + " for user " + .requester'
+          invoke: sync
+          refName: createIssue
+        name: CreateIssue
+      name: CreateIssue
+      transition:
+        nextState: SendNotificationIssueCreated
+      type: operation
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          arguments:
+            payload:
+              description: '"Issue created: Request for large namespace " + .namespace+
+                " for user " + .requester'
+              link: .createIssueResult.web_url
+              severity: normal
+              title: '"Issue created: Request for large namespace " + .namespace+
+                " for user " + .requester'
+              topic: Create OCP Namespace workflow
+            recipients:
+              entityRef: .recipients
+              type: entity
+          invoke: sync
+          refName: createNotification
+        name: 'Create notification: issue created'
+      name: SendNotificationIssueCreated
+      transition:
+        nextState: PollIssue
+      type: operation
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          toStateData: .getIssueResult
+          useResults: true
+        functionRef:
+          arguments:
+            id: .getProjectIdResult[0].id|tostring
+            issue_iid: .createIssueResult.iid
+          invoke: sync
+          refName: getIssue
+        name: GetIssue
+        sleep:
+          before: PT60S
+      name: PollIssue
+      transition:
+        nextState: CheckIssueStatus
+      type: operation
+    - dataConditions:
+      - condition: (.getIssueResult.labels|length > 0) and (.getIssueResult.labels[0]
+          == "denied")
+        name: Resource request denied
+        transition:
+          nextState: SendNotificationRequestDenied
+      - condition: (.getIssueResult.labels|length > 0) and (.getIssueResult.labels[0]
+          == "approved")
+        name: Resource request authorized
+        transition:
+          nextState: LaunchSoftwareTemplateLarge
+      defaultCondition:
+        transition:
+          nextState: PollIssue
+      name: CheckIssueStatus
+      type: switch
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          toStateData: .launchedTemplate
+          useResults: true
+        functionRef:
+          arguments:
+            templateRef: $SECRET.SWT_REF
+            values:
+              component_id: .namespace
+              git_host: .git_host
+              namespace_owner: .requester
+              size: .size
+          invoke: sync
+          refName: launchSoftwareTemplate
+        name: Launch Software Template
+      name: LaunchSoftwareTemplateLarge
+      transition:
+        nextState: GetSoftwareTemplate
+      type: operation
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          toStateData: .launchedTemplate
+          useResults: true
+        functionRef:
+          arguments:
+            templateRef: $SECRET.SWT_REF
+            values:
+              component_id: .namespace
+              git_host: .git_host
+              namespace_owner: .requester
+              size: .size
+          invoke: sync
+          refName: launchSoftwareTemplate
+        name: Launch Software Template
+      name: LaunchSoftwareTemplate
+      transition:
+        nextState: GetSoftwareTemplate
+      type: operation
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          arguments:
+            message: '"Sleeping before checking the software template "'
+          invoke: sync
+          refName: logInfo
+        sleep:
+          after: PT15S
+      - actionDataFilter:
+          toStateData: .readTask
+          useResults: true
+        functionRef:
+          arguments:
+            taskId: .launchedTemplate.id
+          invoke: sync
+          refName: getSoftwareTemplateTask
+      name: GetSoftwareTemplate
+      transition:
+        nextState: IsTaskDone
+      type: operation
+    - dataConditions:
+      - condition: (.readTask.status == "processing")
+        transition:
+          nextState: GetSoftwareTemplate
+      - condition: (.readTask.status == "completed")
+        transition:
+          nextState: SendTaskCompletedNotification
+      - condition: (.readTask.status == "failed")
+        transition:
+          nextState: SendTaskFailureNotification
+      defaultCondition:
+        transition:
+          nextState: GetSoftwareTemplate
+      name: IsTaskDone
+      type: switch
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          invoke: sync
+          refName: templateSuccessResult
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          arguments:
+            payload:
+              description: '"Namespace " + .namespace + " created"'
+              link: $SECRET.rhdh_url + "/catalog/default/component/" + .namespace
+              severity: normal
+              title: '"Namespace " + .namespace + " created"'
+              topic: Create OCP Namespace workflow
+            recipients:
+              entityRef: .recipients
+              type: entity
+          invoke: sync
+          refName: createNotification
+      name: SendTaskCompletedNotification
+      transition:
+        nextState: CloseIssueSwitch
+      type: operation
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          invoke: sync
+          refName: templateErrorResult
+        name: templateErrorResult
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          arguments:
+            payload:
+              description: '"Namespace " + .namespace + " could not be created"'
+              severity: high
+              title: '"Namespace " + .namespace + " could not be created"'
+              topic: Create OCP Namespace workflow
+            recipients:
+              entityRef: .recipients
+              type: entity
+          invoke: sync
+          refName: createNotification
+      name: SendTaskFailureNotification
+      transition:
+        nextState: CloseIssueSwitch
+      type: operation
+    - dataConditions:
+      - condition: .size == "small"
+        end:
+          terminate: true
+        name: Namespace small
+      - condition: .size == "large"
+        name: Namespace large
+        transition:
+          nextState: CloseIssue
+      defaultCondition:
+        end:
+          terminate: true
+      name: CloseIssueSwitch
+      type: switch
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          arguments:
+            message: .getProjectIdResult|tojson
+          invoke: sync
+          refName: logInfo
+      - actionDataFilter:
+          toStateData: .closeIssueResult
+          useResults: true
+        functionRef:
+          arguments:
+            id: .getProjectIdResult[0].id|tostring
+            issue_iid: .createIssueResult.iid
+            state_event: close
+          invoke: sync
+          refName: closeIssue
+        name: CloseIssue
+      end:
+        terminate: true
+      name: CloseIssue
+      type: operation
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          arguments:
+            payload:
+              description: '"Denied: Request for large namespace " + .namespace+ "
+                for user " + .requester'
+              link: .createIssueResult.web_url
+              severity: normal
+              title: '"Denied: Request for large namespace " + .namespace+ " for user
+                " + .requester'
+              topic: Create OCP Namespace workflow
+            recipients:
+              entityRef: .recipients
+              type: entity
+          invoke: sync
+          refName: createNotification
+        name: 'Create notification: request denied'
+      name: SendNotificationRequestDenied
+      transition:
+        nextState: CloseIssueDenied
+      type: operation
+    - actionMode: sequential
+      actions:
+      - actionDataFilter:
+          useResults: true
+        functionRef:
+          invoke: sync
+          refName: errorDeniedResult
+        name: setOutput
+      - actionDataFilter:
+          toStateData: .closeIssueResult
+          useResults: true
+        functionRef:
+          arguments:
+            id: .getProjectIdResult[0].id|tostring
+            issue_iid: .createIssueResult.iid
+            state_event: close
+          invoke: sync
+          refName: closeIssue
+        name: CloseIssue
+      end:
+        terminate: true
+      metadata:
+        errorMessage: '"Creation of namespace " + .namespace + " denied"'
+      name: CloseIssueDenied
+      type: operation
+  podTemplate:
+    container:
+      image: ghcr.io/redhat-ads-tech/create-ocp-namespace-swt:0.1.11
+      resources: {}
+  resources:
+    configMaps:
+    - configMap:
+        name: 01-create-ocp-namespace-swt-resources-schemas
+      workflowPath: schemas
+    - configMap:
+        name: 02-create-ocp-namespace-swt-resources-specs
+      workflowPath: specs
+status:
+  address: {}
+  lastTimeRecoverAttempt: null

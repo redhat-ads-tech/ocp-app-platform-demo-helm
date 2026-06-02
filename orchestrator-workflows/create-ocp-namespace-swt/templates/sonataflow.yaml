@@ -1,0 +1,27 @@
+{{- $sonataflowFile := .Files.Get "manifests/05-sonataflow_create-ocp-namespace-swt.yaml.template" -}}
+{{- $sonataflow := $sonataflowFile | fromYaml -}}
+
+{{- /* Update image and envFrom to use Helm-managed secret */ -}}
+{{- $_ := set $sonataflow.spec.podTemplate.container "envFrom" (list (dict "secretRef" (dict "name" (printf "%s-creds" (include "create-ocp-namespace-swt.fullname" .))))) -}}
+
+{{- /* Update persistence if configured */ -}}
+{{- if and .Values.persistence.postgresql $sonataflow.spec -}}
+{{- $persistence := dict 
+  "postgresql" (dict 
+    "secretRef" (dict 
+      "name" .Values.persistence.postgresql.secretRef.name 
+      "userKey" .Values.persistence.postgresql.secretRef.userKey 
+      "passwordKey" .Values.persistence.postgresql.secretRef.passwordKey
+    )
+    "serviceRef" (dict 
+      "name" .Values.persistence.postgresql.serviceRef.name 
+      "port" (.Values.persistence.postgresql.serviceRef.port | int)
+      "databaseName" .Values.persistence.postgresql.serviceRef.databaseName 
+      "databaseSchema" .Values.persistence.postgresql.serviceRef.databaseSchema
+    )
+  )
+-}}
+{{- $_ := set $sonataflow.spec "persistence" $persistence -}}
+{{- end -}}
+
+{{- $sonataflow | toYaml }}
