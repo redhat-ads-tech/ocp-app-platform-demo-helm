@@ -54,7 +54,7 @@ gitlab:
         - id: pe1
         - id: pe2
       project:
-        - name: rhdh-issues
+        - name: orchestrator-approvals
           labels:
             - name: approved
               color: green
