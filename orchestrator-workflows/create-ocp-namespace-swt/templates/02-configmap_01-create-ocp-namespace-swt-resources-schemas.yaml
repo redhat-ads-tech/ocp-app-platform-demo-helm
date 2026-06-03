@@ -1,27 +1,65 @@
 apiVersion: v1
 data:
-  create-ocp-namespace-swt-schema.json: "{\n  \"$id\": \"classpath:/schemas/create-ocp-namespace-swt-schema.json\",\n
-    \ \"title\": \"Workflow input data\",\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n
-    \ \"type\": \"object\",\n  \"properties\": {\n    \"namespace\": {\n      \"title\":
-    \"Namespace Name\",\n      \"description\": \"OCP namespace to create\",\n      \"type\":
-    \"string\",\n      \"pattern\": \"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$\"\n    },\n
-    \   \"git_host\": {\n      \"title\": \"GitLab Host\",\n      \"type\": \"string\",\n
-    \     \"description\": \"The gitlab host to use, example: gitlab.acme.com\"\n
-    \   },\n    \"requester\": {\n      \"title\": \"Requester\",\n      \"type\":
-    \"string\",\n      \"description\": \"The requester of the namespace\",\n      \"pattern\":
-    \"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$\"\n    }, \n    \"size\": {\n      \"title\":
-    \"Size\",\n      \"type\": \"string\",\n      \"description\": \"The size of the
-    namespace (small, medium, large). A large namespace requires approval.\",\n      \"enum\":
-    [\n        \"small\",\n        \"medium\",\n        \"large\"\n      ]\n    },\n
-    \   \"reason\": {\n      \"title\": \"Reason\",\n      \"type\": \"string\",\n
-    \     \"description\": \"The reason a large namespace is required\"\n    },    \n
-    \   \"recipients\": {\n      \"title\": \"Recipients\",\n      \"type\": \"array\",\n
-    \     \"description\": \"A list of recipients for the notification in the format
-    of 'user:<namespace>/<username>' or 'group:<namespace>/<groupname>', i.e. 'user:default/jsmith'\",\n
-    \     \"items\": {\n        \"title\": \"Recipient\",\n        \"type\": \"string\",\n
-    \       \"pattern\": \"^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$\"\n
-    \     },\n      \"minItems\": 1\n    }\n  },\n  \"required\": [\n    \"namespace\",\n
-    \   \"requester\",\n    \"size\",\n    \"git_host\",\n    \"recipients\"\n  ]\n}"
+  create-ocp-namespace-swt-schema.json: |
+    {
+      "$id": "classpath:/schemas/create-ocp-namespace-swt-schema.json",
+      "title": "Workflow input data",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "title": "Namespace Name",
+          "description": "OCP namespace to create",
+          "type": "string",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "git_host": {
+          "title": "GitLab Host",
+          "type": "string",
+          "description": "The gitlab host to use, example: gitlab.acme.com",
+          "default": "gitlab-gitlab.apps.{{ .Values.cluster.subdomain }}"
+        },
+        "requester": {
+          "title": "Requester",
+          "type": "string",
+          "description": "The requester of the namespace",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "size": {
+          "title": "Size",
+          "type": "string",
+          "description": "The size of the namespace (small, medium, large). A large namespace requires approval.",
+          "enum": [
+            "small",
+            "medium",
+            "large"
+          ]
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string",
+          "description": "The reason a large namespace is required"
+        },
+        "recipients": {
+          "title": "Recipients",
+          "type": "array",
+          "description": "A list of recipients for the notification in the format of 'user:<namespace>/<username>' or 'group:<namespace>/<groupname>', i.e. 'user:default/jsmith'",
+          "items": {
+            "title": "Recipient",
+            "type": "string",
+            "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "namespace",
+        "requester",
+        "size",
+        "git_host",
+        "recipients"
+      ]
+    }
   workflow-output-schema.json: |-
     {
         "$schema": "http://json-schema.org/draft-07/schema#",
