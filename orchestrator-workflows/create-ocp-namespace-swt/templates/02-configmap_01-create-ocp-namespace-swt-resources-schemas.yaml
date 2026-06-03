@@ -17,7 +17,7 @@ data:
           "title": "GitLab Host",
           "type": "string",
           "description": "The gitlab host to use, example: gitlab.acme.com",
-          "default": "gitlab-gitlab.apps.{{ .Values.cluster.subdomain }}"
+          "default": "gitlab-gitlab.{{ .Values.cluster.subdomain }}"
         },
         "requester": {
           "title": "Requester",
