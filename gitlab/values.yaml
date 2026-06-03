@@ -91,6 +91,7 @@ gitlab:
         - templates/parasol-insurance-secured/template.yaml
         - templates/request-kafka-topic/template.yaml
         - templates/request-kafka-user/template.yaml
+        - templates/request-namespace/template.yaml
         - templates/quarkus-rest-api/template.yaml
 postgresql:
   dbUser: gitlab
