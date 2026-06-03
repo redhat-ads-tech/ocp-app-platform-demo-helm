@@ -38,8 +38,6 @@ gitlab:
       repo:
         - name: developer-hub-config
           url: https://github.com/redhat-ads-tech/ocp-app-platform-demo-developer-hub-config.git
-        - name: rhdh-entities
-          url: https://github.com/redhat-pe-workshop/pe-workshop-entities.git
         - name: template-developer-self-service
           url: https://github.com/redhat-pe-workshop/rhdh-template-developer-self-service.git
         - name: devfiles
