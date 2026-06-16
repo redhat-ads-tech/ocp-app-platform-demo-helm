@@ -24,6 +24,27 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      # Wait for istiod to be reachable before starting PostgreSQL.
+      # ZTunnel can't enroll pods until it connects to istiod, and pods
+      # that start before enrollment are permanently unreachable via HBONE.
+      initContainers:
+        - name: wait-for-istiod
+          image: registry.redhat.io/ubi9/ubi-minimal:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for istiod to be reachable..."
+              until timeout 2 bash -c 'echo > /dev/tcp/istiod.istio-system.svc/15012' 2>/dev/null; do
+                echo "istiod not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "istiod is ready, proceeding with startup"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
       containers:
         - name: parasol-db
           image: {{ $.Values.database.image }}
@@ -50,6 +71,18 @@ spec:
                   key: database-name
           resources:
             {{- toYaml $.Values.database.resources | nindent 12 }}
+          # Validates mesh connectivity via service DNS during startup.
+          # If ZTunnel enrollment is broken after a cluster restart the
+          # probe fails and Kubernetes restarts the pod, re-triggering enrollment.
+          startupProbe:
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 18
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - PGPASSWORD=$POSTGRESQL_PASSWORD psql -h parasol-db -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
           livenessProbe:
             timeoutSeconds: 1
             initialDelaySeconds: 5

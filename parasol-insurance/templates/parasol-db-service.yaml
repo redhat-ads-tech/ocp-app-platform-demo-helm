@@ -7,9 +7,17 @@ metadata:
   namespace: {{ $env.namespace }}
   labels:
     app: parasol-db
+    # Bypass waypoint for DB traffic — PostgreSQL is L4/TCP so the L7
+    # waypoint proxy adds no value and causes connectivity failures on
+    # cluster restarts. ZTunnel still provides mTLS and ambient mesh membership.
+    istio.io/use-waypoint: "none"
 spec:
+  # Ensures the DB pod is in the endpoints during startup so the
+  # startup probe can reach itself via service DNS to validate mesh connectivity.
+  publishNotReadyAddresses: true
   ports:
     - name: postgresql
+      appProtocol: tcp
       protocol: TCP
       port: 5432
       targetPort: 5432
