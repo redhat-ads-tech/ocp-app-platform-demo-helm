@@ -278,3 +278,7 @@ orchestrator:
 orchestratorWorkflows:
   name: orchestrator-workflows
   namespace: rhdh
+
+ztunnelHealer:
+  name: ztunnel-healer
+  namespace: istio-mesh-tools

@@ -1,0 +1,150 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "ztunnel-healer.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ztunnel-healer.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "ztunnel-healer.selectorLabels" . | nindent 12 }}
+        spec:
+          serviceAccountName: {{ include "ztunnel-healer.name" . }}
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: healer
+              image: {{ .Values.image }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              env:
+                - name: DRY_RUN
+                  value: {{ .Values.dryRun | quote }}
+                - name: MIN_AGE
+                  value: {{ .Values.minPodAgeSeconds | quote }}
+                - name: PROBE_TIMEOUT
+                  value: {{ .Values.probeTimeoutSeconds | quote }}
+                - name: EXCLUDE_NS
+                  value: {{ join " " .Values.excludeNamespaces | quote }}
+                - name: HEALER_NS
+                  value: {{ .Values.namespace | quote }}
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -euo pipefail
+
+                  echo "=== ZTunnel Enrollment Healer - $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+
+                  # Discover ambient namespaces
+                  AMBIENT_NS=$(oc get namespaces \
+                    -l istio.io/dataplane-mode=ambient \
+                    -o jsonpath='{.items[*].metadata.name}')
+
+                  if [ -z "$AMBIENT_NS" ]; then
+                    echo "No ambient namespaces found."
+                    exit 0
+                  fi
+
+                  # Filter excluded namespaces
+                  FILTERED_NS=""
+                  for ns in $AMBIENT_NS; do
+                    skip=false
+                    [ "$ns" = "$HEALER_NS" ] && skip=true
+                    for pattern in $EXCLUDE_NS; do
+                      case "$ns" in
+                        $pattern) skip=true ;;
+                      esac
+                    done
+                    [ "$skip" = "false" ] && FILTERED_NS="$FILTERED_NS $ns"
+                  done
+                  FILTERED_NS=$(echo "$FILTERED_NS" | xargs)
+
+                  if [ -z "$FILTERED_NS" ]; then
+                    echo "All ambient namespaces excluded."
+                    exit 0
+                  fi
+                  echo "Scanning: $FILTERED_NS"
+
+                  NOW=$(date +%s)
+                  CHECKED=0
+                  BROKEN=""
+
+                  for ns in $FILTERED_NS; do
+                    PODS=$(oc get pods -n "$ns" \
+                      --field-selector=status.phase=Running \
+                      -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.podIP}{"\t"}{.metadata.creationTimestamp}{"\t"}{.metadata.ownerReferences[0].kind}{"\n"}{end}' \
+                      2>/dev/null || true)
+
+                    while IFS=$'\t' read -r POD_NAME POD_IP CREATED OWNER_KIND; do
+                      [ -z "$POD_NAME" ] && continue
+                      [ -z "$POD_IP" ] && continue
+
+                      # Skip DaemonSet and Job-owned pods
+                      case "$OWNER_KIND" in
+                        DaemonSet|Job) continue ;;
+                      esac
+
+                      # Skip young pods
+                      CREATED_TS=$(date -d "$CREATED" +%s 2>/dev/null || echo "0")
+                      AGE=$((NOW - CREATED_TS))
+                      [ "$AGE" -lt "$MIN_AGE" ] && continue
+
+                      # Skip pods with unready containers
+                      NOT_READY=$(oc get pod "$POD_NAME" -n "$ns" \
+                        -o jsonpath='{range .status.containerStatuses[*]}{.ready}{"\n"}{end}' 2>/dev/null \
+                        | grep -c "false" || true)
+                      [ "$NOT_READY" -gt 0 ] && continue
+
+                      CHECKED=$((CHECKED + 1))
+
+                      # Probe HBONE port 15008
+                      set +e
+                      timeout "$PROBE_TIMEOUT" bash -c "echo > /dev/tcp/$POD_IP/15008" 2>/dev/null
+                      RESULT=$?
+                      set -e
+
+                      if [ "$RESULT" -eq 1 ]; then
+                        echo "BROKEN: $ns/$POD_NAME ($POD_IP) - HBONE refused (age: ${AGE}s)"
+                        BROKEN="$BROKEN $ns/$POD_NAME"
+                      elif [ "$RESULT" -ne 0 ]; then
+                        echo "INCONCLUSIVE: $ns/$POD_NAME ($POD_IP) - probe exit $RESULT"
+                      fi
+
+                    done <<< "$PODS"
+                  done
+
+                  BROKEN_COUNT=$(echo "$BROKEN" | wc -w | xargs)
+                  echo "Checked $CHECKED pods, found $BROKEN_COUNT with broken enrollment"
+
+                  if [ -z "$BROKEN" ]; then
+                    echo "Mesh enrollment is healthy."
+                    exit 0
+                  fi
+
+                  for pod_ref in $BROKEN; do
+                    ns="${pod_ref%%/*}"
+                    pod="${pod_ref##*/}"
+                    if [ "$DRY_RUN" = "true" ]; then
+                      echo "DRY-RUN: would delete $ns/$pod"
+                    else
+                      echo "Deleting $ns/$pod ..."
+                      oc delete pod "$pod" -n "$ns" --grace-period=30 || echo "WARNING: failed to delete $ns/$pod"
+                    fi
+                  done
+
+                  echo "=== Healer complete ==="

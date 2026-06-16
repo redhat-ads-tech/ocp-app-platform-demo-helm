@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "ztunnel-healer.name" . }}
+  labels:
+    {{- include "ztunnel-healer.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "ztunnel-healer.name" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "ztunnel-healer.name" . }}
+    namespace: {{ .Values.namespace }}

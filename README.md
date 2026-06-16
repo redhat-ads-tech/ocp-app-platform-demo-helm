@@ -22,6 +22,7 @@ The workshop stands up the following on a single OpenShift cluster:
 | **RHDH GitOps** | `gitops/` | Dedicated Argo CD instance for Developer Hub-managed applications |
 | **Red Hat Developer Hub** | `redhat-developer-hub/` | Internal developer portal (Backstage) |
 | **Trusted Artifact Signer** | `rhtas/` | Sigstore-based container image signing (Fulcio, Rekor, etc.) |
+| **ZTunnel Healer** | `ztunnel-healer/` | CronJob that detects and restarts pods with broken Istio ambient mesh enrollment |
 
 ## App-of-apps pattern
 
@@ -83,6 +84,20 @@ Several charts use a pattern where a `ConfigMap` contains an Ansible playbook, a
 - **`redhat-developer-hub/redhat-developer-hub-config-template/templates/rhdh-config-template.yaml`** — Clones the Developer Hub config repo from GitLab, templates it with cluster-specific values, and pushes the result back
 
 These Jobs use the `quay.io/agnosticd/ee-multicloud` execution environment image (or `ose-cli` for simpler scripts) and follow Helm/Argo CD sync-wave ordering to ensure dependencies are ready.
+
+## ZTunnel enrollment healer
+
+The `ztunnel-healer/` chart deploys a CronJob that detects and remediates a known issue with Istio ambient mode: on cluster restart, the ZTunnel DaemonSet can miss pod enrollment if it hasn't connected to istiod yet when the pod starts. Unenrolled pods are healthy locally but unreachable through the mesh from other nodes.
+
+The CronJob runs every 2 minutes in a dedicated non-mesh namespace (`istio-mesh-tools`). It discovers all namespaces with `istio.io/dataplane-mode: ambient`, probes each Running pod's HBONE port (15008), and restarts any pod where the connection is refused — a definitive signal that ZTunnel never created the inbound listener. Timeouts and other probe results are treated as inconclusive and ignored.
+
+The chart supports a `dryRun` mode that logs what would be restarted without taking action.
+
+Other mitigations that were explored but proved insufficient on their own:
+- `istio.io/use-waypoint: none` on the DB service — bypasses the L7 waypoint for PostgreSQL traffic. Removed since `appProtocol: tcp` correctly handles protocol detection and the healer addresses enrollment failures.
+- `publishNotReadyAddresses: true` on the DB service — only needed if a startup probe connects to itself via service DNS.
+- Init container waiting for istiod — reduces the race window but doesn't eliminate it since istiod reachability doesn't guarantee local ZTunnel enrollment.
+- `istioOwnedCNIConfig: true` on the IstioCNI CR — persists CNI config across reboots but only helps newly created pods, not pods surviving a cluster restart.
 
 ## Vault auto-unseal
 

@@ -1,0 +1,19 @@
+nameOverride: ""
+
+namespace: istio-mesh-tools
+
+schedule: "*/2 * * * *"
+
+image: registry.redhat.io/openshift4/ose-cli:latest
+
+minPodAgeSeconds: 60
+
+probeTimeoutSeconds: 3
+
+excludeNamespaces:
+  - kube-system
+  - istio-system
+  - istio-cni
+  - ztunnel
+
+dryRun: false

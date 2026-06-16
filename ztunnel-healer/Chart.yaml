@@ -1,0 +1,5 @@
+apiVersion: v2
+name: ztunnel-healer
+description: Detects and remediates Istio ambient mesh ZTunnel enrollment failures
+type: application
+version: 0.1.0
