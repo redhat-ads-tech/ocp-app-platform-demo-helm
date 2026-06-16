@@ -9,3 +9,9 @@ metadata:
 spec:
   namespace: {{ .Values.istioCni.namespace }}
   profile: ambient
+  values:
+    cni:
+      # Persists CNI config across node reboots so pods that start before
+      # ZTunnel's initial reconciliation still get iptables rules set up
+      # and are properly handed off for HBONE enrollment.
+      istioOwnedCNIConfig: true
