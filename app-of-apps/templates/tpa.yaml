@@ -35,7 +35,7 @@ spec:
   source:
     chart: redhat-trusted-profile-analyzer
     repoURL: https://charts.openshift.io/
-    targetRevision: "1.2.1"
+    targetRevision: "1.2.6"
     helm:
       valuesObject:
         appDomain: {{ .Values.tpa.appDomain }}
@@ -89,14 +89,27 @@ spec:
           createImporters:
             enabled: true
             importers:
+              redhat-csaf:
+                csaf:
+                  description: All Red Hat CSAF data
+                  period: 12h
+                  source: redhat.com
+                  disabled: false
+                  fetchRetries: 50
               cve:
                 cve:
+                  description: CVE list v5
                   period: 12h
                   source: https://github.com/CVEProject/cvelistV5
+                  disabled: false
               osv-github:
                 osv:
+                  description: GitHub Advisory Database
                   period: 12h
                   source: https://github.com/github/advisory-database
-                  path: advisories/github-reviewed
+                  path: advisories
+                  disabled: false          
+
+
 {{ include "app-of-apps.syncPolicy" . | indent 2 }}
 {{- end }}
