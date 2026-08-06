@@ -37,6 +37,9 @@ openVSXURL: "https://open-vsx.org"
 gitlab:
   host: ""
 
+rhdh:
+  url: ""
+
 argocd:
   enabled: true
   instance:
