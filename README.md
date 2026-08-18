@@ -77,7 +77,7 @@ DevSpaces reuses this flow — the DevSpaces operator hardcodes `provider="opens
 
 Developer Hub is provisioned with the `scaffolder-relation-processor` plugin and `scaffolder.pullRequests.templateUpdate` enabled (see `ocp-app-platform-demo-developer-hub-config`). The **Quarkus REST API** template in `rhdh/rhdh-templates` carries `backstage.io/template-version`, and scaffolded apps link back via `spec.scaffoldedFrom`. When a platform engineer bumps that version in GitLab, Developer Hub opens merge requests on every downstream source repo.
 
-Walkthrough, troubleshooting, and the optional scoped-diff scripts live in the [rhdh-templates README](https://github.com/redhat-ads-tech/ocp-app-platform-demo-rhdh-templates).
+Walkthrough, troubleshooting, and the optional scoped-diff scripts live in the demo showroom: [Module 4, Part 4](https://github.com/nikolaus-lemberski/adv-app-platform-demo-showroom/blob/main/content/modules/ROOT/pages/06-module-04-developer-hub.adoc#part-4).
 
 ## Embedded Ansible playbooks
 
