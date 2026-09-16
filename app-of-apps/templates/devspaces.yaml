@@ -27,5 +27,7 @@ spec:
           gitlab:
             host: {{ .Values.gitlab.host }}
           openVSXURL: https://open-vsx-server-{{ .Values.openvsx.namespace }}.{{ .Values.cluster.subdomain }}
+          rhdh:
+            url: https://backstage-developer-hub-{{ .Values.developerHub.namespace }}.{{ .Values.cluster.subdomain }}
 {{ include "app-of-apps.syncPolicy" . | indent 2 }}
 {{- end }}
