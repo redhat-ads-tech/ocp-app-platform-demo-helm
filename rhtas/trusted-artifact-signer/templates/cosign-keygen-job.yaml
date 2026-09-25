@@ -15,7 +15,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: cosign-keygen
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: registry.redhat.io/openshift4/ose-cli:v4.15.0
           env:
             - name: VAULT_NAMESPACE
               value: {{ .Values.vault.namespace | quote }}
