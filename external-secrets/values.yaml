@@ -1,10 +1,2 @@
 external-secrets:
   installCRDs: true
-  securityContext:
-    runAsUser: null
-  certController:
-    securityContext:
-      runAsUser: null
-  webhook:
-    securityContext:
-      runAsUser: null
