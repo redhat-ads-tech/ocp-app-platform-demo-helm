@@ -1,10 +1,14 @@
 external-secrets:
   installCRDs: true
+  # Override container-level securityContext to allow OpenShift to assign UIDs
   securityContext:
     runAsUser: null
+  podSecurityContext: {}
   certController:
     securityContext:
       runAsUser: null
+    podSecurityContext: {}
   webhook:
     securityContext:
       runAsUser: null
+    podSecurityContext: {}
