@@ -1,0 +1,18 @@
+{{- $serviceAccounts := list "external-secrets" "external-secrets-cert-controller" "external-secrets-webhook" }}
+{{- range $sa := $serviceAccounts }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-secrets-scc-{{ $sa }}
+  labels:
+    app.kubernetes.io/part-of: external-secrets
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:nonroot-v2
+subjects:
+  - kind: ServiceAccount
+    name: {{ $sa }}
+    namespace: {{ $.Release.Namespace }}
+{{- end }}
