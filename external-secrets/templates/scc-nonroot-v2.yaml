@@ -1,3 +1,7 @@
+# The upstream external-secrets chart (0.9.x) hardcodes runAsUser: 1000
+# in the container securityContext, and Helm subchart value merging makes
+# it impossible to remove via null override. Grant nonroot-v2 so OpenShift
+# accepts the fixed UID instead of rejecting it against restricted-v2.
 {{- $serviceAccounts := list "external-secrets" "external-secrets-cert-controller" "external-secrets-webhook" }}
 {{- range $sa := $serviceAccounts }}
 ---
