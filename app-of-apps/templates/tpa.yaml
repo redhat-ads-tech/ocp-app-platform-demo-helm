@@ -104,6 +104,7 @@ spec:
                   disabled: false
               osv-github:
                 osv:
+                  transport: git
                   description: GitHub Advisory Database
                   period: 12h
                   source: https://github.com/github/advisory-database
