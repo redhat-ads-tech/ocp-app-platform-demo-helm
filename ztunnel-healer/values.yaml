@@ -4,7 +4,7 @@ namespace: istio-mesh-tools
 
 schedule: "*/2 * * * *"
 
-image: registry.redhat.io/openshift4/ose-cli:latest
+image: registry.redhat.io/openshift4/ose-cli:v4.15.0
 
 minPodAgeSeconds: 60
 
