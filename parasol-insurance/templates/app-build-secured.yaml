@@ -31,6 +31,13 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 2m0s
+      limit: 45
     syncOptions:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
+      - SkipDryRunOnMissingResource=true
