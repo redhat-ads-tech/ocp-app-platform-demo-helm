@@ -30,12 +30,12 @@ spec:
                 "default": {
                   "openAiBaseUrl": "{{ printf "{{ .base_url }}" }}",
                   "openAiApiKey": "{{ printf "{{ .api_key }}" }}",
-                  "openAiModelId": "qwen3-235b",
+                  "openAiModelId": "qwen3-235b-a22b",
                   "openAiCustomModelInfo": {
                     "maxTokens": -1,
                     "contextWindow": 262144,
                     "supportsImages": false,
-                    "supportsPromptCache": true,
+                    "supportsPromptCache": false,
                     "inputPrice": 0,
                     "outputPrice": 0
                   },
@@ -221,7 +221,7 @@ spec:
         # See: https://docs.vllm.ai/en/stable/serving/integrations/claude_code/
         ANTHROPIC_BASE_URL: {{ printf "\"{{ .base_url | trimSuffix `/v1` }}\"" }}
         ANTHROPIC_API_KEY: "{{ printf "{{ .api_key }}" }}"
-        ANTHROPIC_MODEL: "qwen3-235b"
+        ANTHROPIC_MODEL: "qwen3-235b-a22b"
         DEV_KAFKA_PASSWORD: "{{ printf "{{ .kafka_password }}" }}"
   data:
     - secretKey: api_key
